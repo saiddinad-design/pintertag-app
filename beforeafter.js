@@ -24,9 +24,9 @@
       g.fillStyle = bg; g.fillRect(0, 0, W, H);
       // top label: önce → sonra
       const k = ease((t - T_HOLD - T_MOVE * .6) / .4);
-      g.textAlign = 'left'; g.fillStyle = ink; g.font = `700 150px ${sans}`;
-      g.globalAlpha = 1 - k; g.fillText(T('önce.', 'before.'), 84, 300); g.globalAlpha = k; g.fillText(T('sonra.', 'after.'), 84, 300); g.globalAlpha = 1;
-      g.font = `500 34px ${sans}`; g.fillStyle = mute; g.fillText(T('aynı fotoğraflar. sadece sıra değişti.', 'same photos. only the order changed.'), 90, 380);
+      g.textAlign = 'left'; g.fillStyle = ink; g.font = `700 92px ${sans}`;
+      g.globalAlpha = 1 - k; g.fillText(T('önce.', 'before.'), 88, 300); g.globalAlpha = k; g.fillText(T('sonra.', 'after.'), 88, 300); g.globalAlpha = 1;
+      g.font = `500 34px ${sans}`; g.fillStyle = mute; g.fillText(T('aynı fotoğraflar. sadece sıra değişti.', 'same photos. only the order changed.'), 90, 360);
       // grid
       g.save(); g.beginPath(); g.rect(gx - 40, gy - 40, gw + 80, gh + 64); g.clip();
       const mv = []; ids.forEach((id, n) => { const i0 = before.indexOf(id), i1 = after.indexOf(id), a = pos(i0), b = pos(i1);
@@ -71,7 +71,7 @@
   async function saveIt(){ if (!lastVideo) return; const r = await PTSave.save(lastVideo.name, lastVideo); PTSave.say(r, T('Video', 'Video')); }
 
   const _cmp = simpleComparison;
-  simpleComparison = function(){ const h = _cmp(); return h.replace('<div class="compare-actions">', `<button class="m-ba-cta" data-action="m-ba-make"><span>▶</span><span><b>${T('Önce/sonra videosu', 'Before/after video')}</b><small>${T('Story ve Reels için 7 saniye', '7 seconds for story & reels')}</small></span></button><div class="compare-actions">`); };
+  simpleComparison = function(){ const h = _cmp(); return h.replace('<div class="compare-actions">', `<button class="m-ba-cta" data-action="m-ba-make"><span aria-hidden="true"><svg width="12" height="14" viewBox="0 0 12 14"><path d="M1.5 1.2v11.6c0 .5.5.8.9.5l9-5.8c.4-.2.4-.8 0-1L2.4.7c-.4-.3-.9 0-.9.5z" fill="currentColor"/></svg></span><span><b>${T('Önce/sonra videosu', 'Before/after video')}</b><small>${T('Story ve Reels için 7 saniye', '7 seconds for story & reels')}</small></span></button><div class="compare-actions">`); };
   document.addEventListener('click', e => { const b = e.target.closest('[data-action]'); if (!b) return; const a = b.dataset.action;
     if (a === 'm-ba-make') make(); if (a === 'm-ba-share') share(); if (a === 'm-ba-save') saveIt(); });
   window.__PTBA = { render, mime };
