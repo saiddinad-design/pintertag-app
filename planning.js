@@ -1,0 +1,7 @@
+/* One viewport-sized planning page, with an independent save footer. */
+function planViewport(){const d=$('#modal');if(!d.classList.contains('plan-page'))return;const v=window.visualViewport;d.style.setProperty('--plan-height',(v?.height||window.innerHeight)+'px');d.style.setProperty('--plan-top',(v?.offsetTop||0)+'px')}
+function preparePlanPage(){const d=$('#modal'),body=$('#modal-body'),form=body.querySelector('#story-form, #simple-date-form'),picker=body.querySelector('.story-picker');d.classList.toggle('plan-page',!!(form||picker));d.classList.toggle('plan-picker',!!picker);if(!form&&!picker){d.style.removeProperty('--plan-height');d.style.removeProperty('--plan-top');return}
+const scroller=document.createElement('div');scroller.className='plan-scroll';while(body.firstChild)scroller.appendChild(body.firstChild);body.appendChild(scroller);
+if(form){const button=form.querySelector('button:not([type]),button[type="submit"]');if(button){button.type='submit';button.setAttribute('form',form.id);button.className='pill solid wide';const footer=document.createElement('div');footer.className='plan-save-footer';footer.appendChild(button);body.appendChild(footer)}}
+d.scrollTop=0;scroller.scrollTop=0;planViewport();}
+window.addEventListener('resize',planViewport);window.visualViewport?.addEventListener('resize',planViewport);window.visualViewport?.addEventListener('scroll',planViewport);
