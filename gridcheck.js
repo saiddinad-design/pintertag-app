@@ -65,7 +65,7 @@ const GC = (() => {
       r: { dark:'post {i} is darker than the rest. looks like it fell in from another account.', bright:'post {i} is so bright it makes the rest look tired.',
         warm:'post {i} got a tan the others didn\'t.', cool:'post {i} is cold. everyone else is in golden hour.', sat:'post {i} is shouting, the rest are whispering.',
         flat:'post {i} looks washed out next to the others.', bwpair:'two black and whites side by side. reads like a newspaper.', accent:'the accent colour is everywhere. that\'s not an accent, that\'s wallpaper.',
-        rhythm:'everything is the same brightness. the eye has nowhere to land.', great:'someone is screenshotting this grid right now.', good:'one swap and this is a 90.' },
+        rhythm:'brightness jumps from frame to frame. the grid reads scattered.', great:'someone is screenshotting this grid right now.', good:'one swap and this is a 90.' },
       card:{ top:'grid check', foot:'what does your grid score?', by:'pintertag · your feed\'s art director' },
       challenge:'my grid got {s} and it\'s "{v}". what does yours get? pintertag' },
     tr: { vibes: {
@@ -76,7 +76,7 @@ const GC = (() => {
       r: { dark:'{i}. post diğerlerinden karanlık. başka bir hesaptan düşmüş gibi.', bright:'{i}. post o kadar parlak ki geri kalanı yorgun gösteriyor.',
         warm:'{i}. post tek başına güneşte bronzlaşmış.', cool:'{i}. post üşüyor, herkes altın saatte.', sat:'{i}. post bağırıyor, diğerleri fısıldıyor.',
         flat:'{i}. post diğerlerinin yanında solgun kalıyor.', bwpair:'iki siyah-beyaz yan yana. gazete sayfası olmuş.', accent:'vurgu rengi her yerde. vurgu değil, duvar kağıdı olmuş.',
-        rhythm:'her kare aynı parlaklıkta. göz nereye bakacağını bilmiyor.', great:'şu an biri bu grid\'in ekran görüntüsünü alıyor.', good:'tek bir değişiklikle bu 90 olur.' },
+        rhythm:'parlaklık kareden kareye çok değişiyor. grid dağınık görünüyor.', great:'şu an biri bu grid\'in ekran görüntüsünü alıyor.', good:'tek bir değişiklikle bu 90 olur.' },
       card:{ top:'grid check', foot:'senin grid\'in kaç alır?', by:'pintertag · feed\'inin sanat yönetmeni' },
       challenge:'grid\'im {s} aldı, "{v}" çıktı. seninki kaç alır? pintertag' }
   };
@@ -100,7 +100,7 @@ const GC = (() => {
     flags.map((f,i) => f ? {i, f} : null).filter(Boolean).sort((a,b) => b.f.d - a.f.d).slice(0,2).forEach(({i,f}) => { const k = key[f.key]; if (k) out.push(T[k].replace('{i}', p(i))); });
     const bw = ms.map(m => m && m.sat < .07); for (let i = 0; i < ms.length && out.length < 3; i++){ const nb = []; if (i%3 < 2) nb.push(i+1); if (i+3 < ms.length) nb.push(i+3); if (bw[i] && nb.some(j => bw[j])){ out.push(T.bwpair); break; } }
     const acc = ms.filter(m => m && m.vivid > .18).length; if (acc >= 5 && out.length < 3) out.push(T.accent);
-    const lums = ms.filter(Boolean).map(m => m.lum); if (lums.length && Math.max(...lums) - Math.min(...lums) < .18 && out.length < 3) out.push(T.rhythm);
+    const sg = window.__PT.scoreGrid(ms); if (sg && sg.lsd > 20 && out.length < 3) out.push(T.rhythm);
     if (!out.length) out.push(score >= 90 ? T.great : T.good);
     return out.slice(0, 3); }
   const verdict = s => tx().verdict[s >= 90 ? 0 : s >= 80 ? 1 : s >= 70 ? 2 : 3];

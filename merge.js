@@ -10,15 +10,31 @@
       const hi=Math.max(R,G,B), lo=Math.min(R,G,B); s+= hi ? (hi-lo)/hi : 0; if (hi>.25 && (hi-lo)/hi>.55) vv++; const l=.2126*R+.7152*G+.0722*B; L[p]=l; ls+=l; ls2+=l*l; }
     const n=48*48; r/=n; g/=n; b/=n; s/=n; const lum=ls/n, contrast=Math.sqrt(Math.max(0, ls2/n-lum*lum));
     let lap=0; for (let y=1;y<47;y++) for (let x=1;x<47;x++){ const i=y*48+x; lap+=Math.abs(4*L[i]-L[i-1]-L[i+1]-L[i-48]-L[i+48]); }
-    return { sat:s, lum, contrast, sharp: lap/(46*46), warm: r-b, vivid: vv/n };
+    /* v65: CIELAB stats, the features that separated curated grids from random mixes in our reference set */
+    const lin = v => v > .04045 ? Math.pow((v+.055)/1.055, 2.4) : v/12.92, fl = t => t > .008856 ? Math.cbrt(t) : 7.787*t + 16/116;
+    const Ls = new Float32Array(n), hist = [0,0,0,0,0,0,0,0]; let aS = 0, Lsum = 0, Ct = 0;
+    for (let i=0,p=0;i<d.length;i+=4,p++){ const R=lin(d[i]/255),G=lin(d[i+1]/255),B=lin(d[i+2]/255);
+      const X=(.4124*R+.3576*G+.1805*B)/.95047, Y=.2126*R+.7152*G+.0722*B, Z=(.0193*R+.1192*G+.9505*B)/1.08883;
+      const fx=fl(X), fy=fl(Y), fz=fl(Z), L=116*fy-16, A=500*(fx-fy), Bb=200*(fy-fz), C=Math.hypot(A,Bb);
+      Ls[p]=L; Lsum+=L; aS+=A; Ct+=C; const h=Math.floor((Math.atan2(Bb,A)+Math.PI)/(2*Math.PI)*8)%8; hist[h]+=C; }
+    const sorted = Array.from(Ls).sort((x,y)=>x-y);
+    return { sat:s, lum, contrast, sharp: lap/(46*46), warm: r-b, vivid: vv/n, v:2, L: Lsum/n, Lp95: sorted[Math.floor(n*.95)], a: aS/n, hist: hist.map(v => v/(Ct+1e-6)) };
   }
-  function scoreGrid(ms){ const c = ms.filter(Boolean); if (c.length < 2) return null;
-    const avg = k => c.reduce((t,m)=>t+m[k],0)/c.length, sd = k => { const a=avg(k); return Math.sqrt(c.reduce((t,m)=>t+(m[k]-a)**2,0)/c.length); };
-    const tone = Math.max(0, 1 - sd('warm')*4 - sd('sat')*1.5);
-    const light = Math.max(0, 1 - Math.abs(avg('lum')-.5)*1.4) * Math.min(1, Math.min(...c.map(m=>m.sharp))*40);
-    let alt=0, pairs=0; for (let i=0;i<c.length;i++){ if (i%3<2 && c[i+1]){ alt+=Math.min(1,Math.abs(c[i].lum-c[i+1].lum)*7); pairs++; } if (c[i+3]){ alt+=Math.min(1,Math.abs(c[i].lum-c[i+3].lum)*7); pairs++; } }
-    const rhythm = pairs ? alt/pairs : 0;
-    return { total: Math.round(Math.min(98, 22 + 78*(tone*.45 + light*.25 + rhythm*.30))), tone, light, rhythm }; }
+  /* v65 grid score, fitted on 48 reference grids (curated personal + brand accounts) against random 9-photo mixes.
+     what curated grids share: steady overall brightness, steady highlights, a narrow colour family. order matters only a little:
+     neighbours tend to differ slightly more than chance, so a small bonus for not parking look-alikes side by side. */
+  const MODEL = { mu: [15.254, 13.358, 1.11, 2.555], sd: [3.711, 4.51, .185, 1.294], w: [-.55, -.42, -.27, -.29], b: -.4 };
+  const sdv = a => { const m = a.reduce((t,v)=>t+v,0)/a.length; return Math.sqrt(a.reduce((t,v)=>t+(v-m)**2,0)/a.length); };
+  const hd = (x,y) => x.hist.reduce((t,v,k)=>t+Math.abs(v-y.hist[k]),0);
+  function scoreGrid(ms){ const c = ms.filter(m => m && m.v === 2); if (c.length < 2) return null;
+    let pairs = 0, hsum = 0; for (let i=0;i<c.length;i++) for (let j=i+1;j<c.length;j++){ hsum += hd(c[i],c[j]); pairs++; }
+    const f = [sdv(c.map(m=>m.L)), sdv(c.map(m=>m.Lp95)), hsum/pairs, sdv(c.map(m=>m.a))];
+    const logit = f.reduce((t,v,k)=>t + (v-MODEL.mu[k])/MODEL.sd[k]*MODEL.w[k], MODEL.b);
+    const near = (x,y) => hd(x,y) + Math.abs(x.L-y.L)/25; let nb = 0, nn = 0, all = 0, an = 0;
+    for (let i=0;i<c.length;i++){ if (i%3<2 && c[i+1]){ nb += near(c[i],c[i+1]); nn++; } if (c[i+3]){ nb += near(c[i],c[i+3]); nn++; } for (let j=i+1;j<c.length;j++){ all += near(c[i],c[j]); an++; } }
+    const ratio = nn && all ? (nb/nn)/(all/an) : 1, bonus = Math.max(-3, Math.min(3, (ratio-1)*10));
+    const total = Math.round(Math.max(45, Math.min(98, 78 + 13*logit + bonus)));
+    return { total, tone: 1/(1+Math.exp(-logit)), light: Math.max(0, 1 - f[0]/30), rhythm: Math.max(0, Math.min(1, ratio/1.3)), lsd: f[0] }; }
   const KEYS = [['warm',.09,'warm','cool'],['lum',.2,'bright','dark'],['sat',.2,'sat','flat']];
   const med = a => { const s=[...a].sort((x,y)=>x-y), h=s.length>>1; return s.length%2 ? s[h] : (s[h-1]+s[h])/2; };
   const baseOf = ms => { const ok = ms.filter(Boolean), b = {}; KEYS.forEach(([k]) => b[k] = med(ok.map(m => m[k]))); return b; };
@@ -35,7 +51,7 @@
   /* 1. every photo is measured on the device once: light, warmth, colour, sharpness */
   let measuring = false;
   async function analyze(){
-    if (measuring) return; const todo = state.photos.filter(p => !p.m && ready(p.src)); if (!todo.length){ label(); return; }
+    if (measuring) return; const todo = state.photos.filter(p => (!p.m || p.m.v !== 2) && ready(p.src)); if (!todo.length){ label(); return; }
     measuring = true; let n = 0;
     for (const p of todo){ const im = await loadI(p.src); if (!im) { p.m = null; continue; } p.m = measure(im); p.light = p.m.lum; p.accent = p.m.vivid > .18; p.bw = p.m.sat < .07; n++; }
     measuring = false; if (n){ save(); render(); } label(); }
@@ -69,7 +85,8 @@
     const items = ids => ids.map(simplePhoto).filter(Boolean);
     const rb = PTEngine.conflicts(items(before), state.mode, 'grid', state.style).reasons, ra = PTEngine.conflicts(items(after), state.mode, 'grid', state.style).reasons;
     const fixed = rb.filter(k => !ra.includes(k) && WHY[k]).map(k => T(...WHY[k]));
-    if (!fixed.length && sa && sb && sa.rhythm > sb.rhythm + .05) fixed.push(T('koyu ve açık kareler sırayla','dark and light frames take turns'));
+    if (sa && sb && sb.lsd - sa.lsd > 1.5 && fixed.length < 2) fixed.push(T('ışık seviyesi daha tutarlı','light level is more even'));
+    if (!fixed.length && sa && sb && sa.rhythm > sb.rhythm + .05) fixed.push(T('benzer kareler artık yan yana değil','look-alike frames no longer sit side by side'));
     const unknown = items(after).filter(p => p.type === 'unknown').length;
     let h = '<div class="m-why">';
     if (sb && sa) h += `<p class="m-score"><span>${T('Seçtiğin stile uyum','Match with your style')}</span><b>${sb.total} → ${sa.total}</b></p>`;
