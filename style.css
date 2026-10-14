@@ -294,3 +294,8 @@ input,textarea,select,button{font-family:inherit}
 #close-modal,#modal.plan-page #close-modal,.simple-mode dialog:has(.settings-content) #close-modal{width:36px;height:36px;min-width:36px;min-height:36px;padding:0;border-radius:50%;background:var(--soft);color:var(--ink);display:grid;place-items:center;font-size:0;border:0;box-shadow:none}
 #close-modal svg{display:block}
 @media (hover:none){#close-modal:focus,#close-modal:focus-visible{outline:none}}
+
+/* v66: drawn icons instead of emoji glyphs (iOS painted ↗ and the lock as blue/colour emoji) */
+.pt-ico{display:inline-block;vertical-align:middle;color:currentColor}
+.edit-link span .pt-ico{color:var(--muted)}
+body{font-variant-emoji:text}
