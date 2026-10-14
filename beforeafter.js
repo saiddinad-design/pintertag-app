@@ -8,7 +8,7 @@
   const scoreOf = ids => { const s = window.__PT.scoreGrid(ids.slice(0, 9).map(id => { const p = simplePhoto(id); return p && p.m ? p.m : null; })); return s ? s.total : null; };
 
   async function render(canvas, before, after, onDone){
-    const g = canvas.getContext('2d'), dark = state.theme === 'dark', bg = dark ? '#262d33' : '#a6b1bb', ink = dark ? '#f2f4f6' : '#14181c', mute = dark ? '#a6b1bb' : '#f4f6f8';
+    const g = canvas.getContext('2d'), dark = state.theme === 'dark', bg = dark ? '#24292c' : '#d3d9dc', ink = dark ? '#eef1f2' : '#14181c', mute = dark ? '#a3abb0' : '#5f686e';
     const sans = '"Helvetica Neue", Helvetica, Arial, sans-serif';
     const ids = [...new Set([...before.slice(0, 9), ...after.slice(0, 9)])];
     const imgs = {}; await Promise.all(ids.map(async id => { const p = simplePhoto(id); imgs[id] = p ? await GC.loadImg(p.src) : null; }));
