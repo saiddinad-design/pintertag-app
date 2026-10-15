@@ -1,3 +1,5 @@
+/* challenge-a-friend: at App Store launch set window.PT_STORE_URL (https://apps.apple.com/app/id...) and the message carries the link */
+window.PT_STORE_URL = window.PT_STORE_URL || '';
 /* bring your real instagram grid in from a profile screenshot: score it, name its vibe, share a story card,
    and keep those posts under your new ones so every plan is checked against the feed people actually see. */
 (function(){
@@ -49,7 +51,7 @@
     if (a === 'm-gc-card' && last){ toast(T('Kart hazırlanıyor…','Making your card…'));
       const d = new Date(), blob = await GC.card({ score: last.score, vibe: last.vk, vibeName: last.vName, vibeLine: last.vLine, tiles: last.tiles, ratio: last.ratio, flags: last.flags, roast: last.roast, date: `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}` });
       await share(blob, 'pintertag-grid-check.png'); }
-    if (a === 'm-gc-dare' && last){ const text = GC.challenge(last.score, last.vName);
+    if (a === 'm-gc-dare' && last){ const text = GC.challenge(last.score, last.vName) + (window.PT_STORE_URL ? ' ' + window.PT_STORE_URL : '');
       try { if (navigator.share){ await navigator.share({ text }); return; } } catch(err){ if (err && err.name === 'AbortError') return; }
       try { await navigator.clipboard.writeText(text); toast(T('Mesaj kopyalandı. Arkadaşına yapıştır.','Message copied. Paste it to a friend.')); } catch(_){ toast(text); } } });
   render();
