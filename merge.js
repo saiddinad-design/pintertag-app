@@ -93,7 +93,7 @@
     const sameSet = before.slice(0,9).slice().sort().join() === after.slice(0,9).slice().sort().join();
     if (sb && sa) h += sameSet ? `<p class="m-score"><span>${T('Grid uyumu','Grid harmony')}</span><b>${sa.total}</b></p>` : `<p class="m-score"><span>${T('Grid uyumu','Grid harmony')}</span><b>${sb.total} → ${sa.total}</b></p>`;
     if (fixed.length) h += `<p>${T('Neden böyle:','Why this order:')} ${fixed.slice(0,2).join(', ')}.</p>`;
-    if (unknown) h += `<p class="small muted">${T(`${unknown} karenin türü belli değil; o yüzden sırana sadece kesin hatalar için dokundum.`, `${unknown} photos have no type yet, so I only fixed clear mistakes in your order.`)} ${action('label-photos', T('Türleri işaretle','Label types'), 'text-button')}</p>`;
+    if (unknown) h += `<p class="small muted">${unknown > 3 ? T(`${unknown} karenin türü belli değil; o yüzden sırana sadece kesin hatalar için dokundum.`, `${unknown} photos have no type yet, so I only fixed clear mistakes in your order.`) : T(`${unknown} karede ne olduğundan emin olamadım; işaretlersen sıra daha iyi olur.`, `I wasn't sure what ${unknown} photos show; label them for a better order.`)} ${action('label-photos', T('Türleri işaretle','Label types'), 'text-button')}</p>`;
     return h + '</div>'; }
   const _cmp = simpleComparison;
   simpleComparison = function(){ const h = _cmp(); const p = simplePreview; if (!p) return h; return h.replace('<div class="compare-actions">', whyBlock(p.before, p.after) + '<div class="compare-actions">'); };
