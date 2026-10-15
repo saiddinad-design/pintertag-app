@@ -2,6 +2,8 @@
    no photo leaves the phone. rules were tuned on 81 real grid photos: 95% right when they decide, and they stay quiet
    (type stays "unknown", the one-tap label screen asks) when they aren't sure. */
 (function(){
+  /* inside Claude the AI labeller (merge.js) does this job, and model files can't be served there */
+  if (/claude/.test(location.hostname)) return;
   const BASE = 'vendor/human/'; let human = null, loading = null, busy = null, total = 0, done = 0;
   const IGN = new Set(['bed','refrigerator','chair','tv','bird','frisbee','dog','cat','bench','couch','dining table','potted plant','person']);
   function load(){ if (human) return Promise.resolve(human); if (loading) return loading;
