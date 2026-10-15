@@ -125,14 +125,20 @@
     if (!pool.length) return null;
     const cnt = {}; recent.forEach(p => { if (p.type && p.type !== 'unknown') cnt[p.type] = (cnt[p.type]||0) + 1; });
     const dom = Object.keys(cnt).sort((a,b) => cnt[b]-cnt[a])[0], domN = dom ? cnt[dom] : 0;
-    const b = baseOf(msOf(ids.slice(0,9))), rl = recent.filter(p => p.m).map(p => p.m.lum), rLum = rl.length ? rl.reduce((a,v)=>a+v,0)/rl.length : .5;
-    const sc = p => (domN >= 2 && p.type !== 'unknown' && p.type !== dom ? 3 : 0) - dist(p.m, b) * .6 + (Math.abs(p.m.lum - rLum) > .15 ? 1 : 0) - (p.m.sharp < .012 && !p.important ? 2 : 0);
+    /* v73: the reference grids say a feed reads curated when light and colour stay in one family, and neighbours aren't twins or two loud colours.
+       so today's pick is the photo that keeps the live grid most coherent once it lands in the top-left corner. */
+    const live = (posted.length ? posted : recent).slice(0, 8), liveMs = live.map(p => (p && p.m) || null), base = scoreGrid(liveMs.concat([]));
+    const neigh = live.slice(0, 1).concat(live.slice(2, 3)).filter(Boolean);
+    const sc = p => { const g = scoreGrid([p.m, ...liveMs]); let v = g ? g.total : 0;
+      if (domN >= 2 && p.type !== 'unknown' && p.type !== dom) v += 3;
+      if (neigh.some(q => (q.accent && p.accent) || (q.m && twin(p.m, q.m)))) v -= 6;
+      if (p.m.sharp < .012 && !p.important) v -= 4; return v; };
     const best = pool.sort((x,y) => sc(y) - sc(x))[0];
+    const after = scoreGrid([best.m, ...liveMs]);
     let why;
     if (domN >= 2 && best.type !== 'unknown' && best.type !== dom) why = T(`Son paylaşımların ${low(typeName(dom))} ağırlıklı. Bugün bu ${low(typeName(best.type))} karesi iyi bir geçiş olur.`, `Your last posts lean ${low(typeName(dom))}. A ${low(typeName(best.type))} shot like this one is a good change today.`);
-    else if (best.m.lum > rLum + .15) why = T('Son paylaşımların koyu tonda. Bu aydınlık kare akışa nefes aldırır.', 'Your last posts are dark. This lighter frame lets the feed breathe.');
-    else if (best.m.lum < rLum - .15) why = T('Son paylaşımların çok aydınlık. Bu koyu kare ritim katar.', 'Your last posts are very bright. This darker frame adds rhythm.');
-    else why = T('Henüz planlanmamış kareler içinde grid’inin tonuna en çok bu uyuyor.', 'Of your unplanned photos, this one fits your grid’s tone best.');
+    else if (base && after && after.total > base.total) why = T(`Işığı ve renk tonu son paylaşımlarınla aynı aileden. Eklenince grid uyumun ${base.total} → ${after.total}.`, `Its light and colour sit in the same family as your last posts. Your grid harmony goes ${base.total} → ${after.total}.`);
+    else why = T('Henüz planlanmamış kareler içinde grid’inin ışığına ve renk tonuna en çok bu uyuyor.', 'Of your unplanned photos, this one fits your grid’s light and colour best.');
     return { p: best, why }; }
   function todayCard(){ if (simpleIds().length < 4 || (window.__PTShare && window.__PTShare.due())) return '';
     return `<button class="m-today" data-action="m-today"><span><b>${T('Bugün ne paylaşayım?','What should I post today?')}</b><small>${T('Tek öneri, nedeniyle.','One pick, with a reason.')}</small></span><span aria-hidden="true">›</span></button>`; }
