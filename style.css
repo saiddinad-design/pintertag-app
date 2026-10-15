@@ -305,7 +305,9 @@ body{font-variant-emoji:text}
 .pt-intro{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:#fff;color:#0a0a0a;transition:opacity .36s ease}
 .pt-intro.is-dark{background:#151515;color:#f8f8f8}
 .pt-intro.out{opacity:0;pointer-events:none}
-.pt-intro-lockup{display:flex;align-items:center}
+.pt-intro-lockup{display:flex;align-items:center;transform:translateX(var(--shift,0px))}
+.pt-intro.go .pt-intro-lockup{animation:pt-slide .62s cubic-bezier(.5,0,.15,1) 1.15s both}
+@keyframes pt-slide{from{transform:translateX(var(--shift,0px))}to{transform:translateX(0)}}
 .pt-intro-mark{display:block;overflow:visible;flex:0 0 auto}
 .pt-intro-mark .s{fill:none;stroke:currentColor;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1}
 .pt-intro-mark .s1{stroke-width:36}.pt-intro-mark .s3{stroke-width:30}.pt-intro-mark .s4{stroke-width:34}
@@ -318,9 +320,8 @@ body{font-variant-emoji:text}
 @keyframes pt-draw{to{stroke-dashoffset:0}}
 @keyframes pt-rise{from{opacity:0;transform:translateY(18%)}to{opacity:1;transform:none}}
 @keyframes pt-pop{from{opacity:1;transform:scale(0)}to{opacity:1;transform:scale(1)}}
-.pt-intro-word{display:block;overflow:hidden;max-width:0;transition:max-width .62s cubic-bezier(.5,0,.15,1) 1.15s}
-.pt-intro.go .pt-intro-word{max-width:var(--w)}
-.pt-intro-word>span{display:block;white-space:nowrap;padding:.12em .08em .26em 8px;margin:-.12em 0 -.26em;font:700 36px/1.1 "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:-.045em}
+.pt-intro-word{display:block;overflow:visible}
+.pt-intro-word>span{display:block;white-space:nowrap;padding-left:8px;font:700 36px/1.2 "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:-.045em}
 .pt-intro-word i{font-style:normal;display:inline-block;opacity:0;filter:blur(3px)}
 .pt-intro.go .pt-intro-word i{animation:pt-letter .34s ease calc(1.22s + var(--i) * .055s) forwards}
 @keyframes pt-letter{0%{opacity:0;filter:blur(3px);color:#9a9a9a}60%{opacity:1;filter:blur(0)}100%{opacity:1;filter:none;color:currentColor}}

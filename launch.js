@@ -17,8 +17,9 @@
       <circle class="f f5" cx="228" cy="45" r="44"/>
     </svg><span class="pt-intro-word"><span>${letters}</span></span></div>`;
   document.body.append(el);
-  const word = el.querySelector('.pt-intro-word'), inner = word.firstElementChild;
-  requestAnimationFrame(() => { word.style.setProperty('--w', inner.scrollWidth + 'px'); el.classList.add('go'); });
+  const word = el.querySelector('.pt-intro-word');
+  const lock = el.querySelector('.pt-intro-lockup'); lock.style.setProperty('--shift', (word.offsetWidth / 2) + 'px'); void lock.getBoundingClientRect();
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('go')));
   let gone = false; const done = () => { if (gone) return; gone = true; el.classList.add('out'); setTimeout(() => el.remove(), 380); };
   setTimeout(done, 2300); el.addEventListener('pointerdown', done); addEventListener('pagehide', () => el.remove(), { once: true });
 })();
