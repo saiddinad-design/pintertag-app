@@ -110,20 +110,20 @@ const GC = (() => {
     g.fillStyle = bgc; g.fillRect(0, 0, W, H);
     const sans = '"Helvetica Neue", Helvetica, Arial, sans-serif', serif = '"Instrument Serif", Georgia, "Times New Roman", serif';
     try { await document.fonts.load('400 40px "Instrument Serif"'); await document.fonts.load('italic 40px "Instrument Serif"'); } catch(_){}
-    g.fillStyle = mute; g.font = `500 30px ${sans}`; g.textAlign = 'left'; g.fillText(tx().card.top.toUpperCase().split('').join(' '), 90, 150);
-    g.textAlign = 'right'; g.fillText(o.date || '', W - 90, 150);
+    g.fillStyle = mute; g.font = `500 30px ${sans}`; g.textAlign = 'left'; g.fillText(tx().card.top.toUpperCase().split('').join(' '), 90, 262);
+    g.textAlign = 'right'; g.fillText(o.date || '', W - 90, 262);
     // score + vibe
-    g.textAlign = 'left'; g.fillStyle = ink; g.font = `500 260px ${sans}`; g.fillText(String(o.score), 78, 420);
-    const sw = g.measureText(String(o.score)).width; g.fillStyle = mute; g.font = `500 54px ${sans}`; g.fillText('/100', 78 + sw + 18, 420);
-    g.fillStyle = ink; g.font = `600 112px ${sans}`; if ("letterSpacing" in g) g.letterSpacing = "-3px"; g.fillText(o.vibeName, 84, 560); if ("letterSpacing" in g) g.letterSpacing = "0px";
-    g.fillStyle = mute; g.font = `400 38px ${sans}`; g.fillText(o.vibeLine, 90, 625);
+    g.textAlign = 'left'; g.fillStyle = ink; g.font = `500 260px ${sans}`; g.fillText(String(o.score), 78, 500);
+    const sw = g.measureText(String(o.score)).width; g.fillStyle = mute; g.font = `500 54px ${sans}`; g.fillText('/100', 78 + sw + 18, 500);
+    g.fillStyle = ink; g.font = `600 112px ${sans}`; if ("letterSpacing" in g) g.letterSpacing = "-3px"; g.fillText(o.vibeName, 84, 628); if ("letterSpacing" in g) g.letterSpacing = "0px";
+    g.fillStyle = mute; g.font = `400 38px ${sans}`; g.fillText(o.vibeLine, 90, 690);
     // the grid: sized so roast and footer always fit below it
     g.font = `400 40px ${sans}`;
     const wrap = (s, maxW) => { const w = s.split(' '), lines = []; let cur = ''; for (const t of w){ const n = cur ? cur + ' ' + t : t; if (g.measureText(n).width > maxW && cur){ lines.push(cur); cur = t; } else cur = n; } if (cur) lines.push(cur); return lines; };
     const rows0 = Math.min(3, Math.ceil(o.tiles.length / 3)), roast = (o.roast || []).slice(0, rows0 > 2 ? 1 : 2).map(l => { const w = wrap(l, W - 220); if (w.length > 2){ w.length = 2; w[1] = w[1].replace(/[\s,;:.]*\S*$/, '') + '…'; } return w; });
     const roastH = roast.reduce((a, l) => a + l.length*52 + 22, 0);
-    const rows = Math.min(3, Math.ceil(o.tiles.length / 3)), gap = 6, ratio = o.ratio || 4/3, gy = 690;
-    const avail = (H - 230) - gy - 60 - roastH;
+    const rows = Math.min(3, Math.ceil(o.tiles.length / 3)), gap = 6, ratio = o.ratio || 4/3, gy = 750;
+    const avail = (H - 440) - gy - 50 - roastH;
     let cw = (W - 180 - 2*gap) / 3, ch = cw * ratio;
     if (rows*(ch+gap) > avail){ ch = (avail - rows*gap) / rows; cw = ch / ratio; }
     const gw = 3*cw + 2*gap, gx = (W - gw) / 2;
@@ -136,8 +136,12 @@ const GC = (() => {
     g.font = `400 40px ${sans}`;
     for (const lines of roast){ g.fillStyle = '#e0412f'; g.fillRect(90, y - 22, 10, 10); g.fillStyle = ink; for (const l of lines){ g.fillText(l, 130, y); y += 52; } y += 22; }
     // footer
-    g.fillStyle = ink; g.font = `500 44px ${sans}`; g.fillText(tx().card.foot, 90, H - 150);
-    g.fillStyle = mute; g.font = `400 32px ${sans}`; g.fillText(tx().card.by, 90, H - 98);
+    // brand lockup: logo + wordmark + handle, kept above Instagram's reply bar so viewers see where it came from
+    g.fillStyle = ink; g.font = `500 42px ${sans}`; g.fillText(tx().card.foot, 90, H - 392);
+    const logo = await loadImg('assets/logo.png'), by = H - 312;
+    if (logo){ g.save(); if (dark) g.filter = 'invert(1)'; g.drawImage(logo, 90, by - 40, 40, 45); g.restore(); }
+    g.fillStyle = ink; g.font = `700 46px ${sans}`; if ("letterSpacing" in g) g.letterSpacing = "-1.5px"; g.fillText('pintertag', 138, by); if ("letterSpacing" in g) g.letterSpacing = "0px";
+    g.fillStyle = mute; g.font = `500 32px ${sans}`; g.textAlign = 'right'; g.fillText('@pintertag', W - 90, by - 4); g.textAlign = 'left';
     return new Promise(res => c.toBlob(b => res(b), 'image/png'));
   }
   const challenge = (score, vibeName) => tx().challenge.replace('{s}', score).replace('{v}', vibeName);
