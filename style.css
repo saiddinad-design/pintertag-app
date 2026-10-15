@@ -325,3 +325,11 @@ body{font-variant-emoji:text}
 .pt-intro-word i{font-style:normal;display:inline-block;opacity:0;filter:blur(3px)}
 .pt-intro.go .pt-intro-word i{animation:pt-letter .34s ease calc(1.22s + var(--i) * .055s) forwards}
 @keyframes pt-letter{0%{opacity:0;filter:blur(3px);color:#9a9a9a}60%{opacity:1;filter:blur(0)}100%{opacity:1;filter:none;color:currentColor}}
+
+/* v72 plan picker */
+.simple-empty[data-action]{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.simple-empty[data-action]:active{opacity:.7}
+.pt-pick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:12px}
+.pt-pick-tile{display:block;padding:0;border:0;background:var(--soft);aspect-ratio:3/4;overflow:hidden}
+.pt-pick-tile img{width:100%;height:100%;object-fit:cover;display:block}
+.pt-pick-tile:active{opacity:.6}
