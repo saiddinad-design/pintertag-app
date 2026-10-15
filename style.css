@@ -347,3 +347,15 @@ body{font-variant-emoji:text}
 .pt-lb-btn:active{transform:scale(.96)}
 .pt-lb-btn.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .pt-lb-btn.ghost{border-style:dashed;color:var(--muted)}
+
+/* v76 auto-type progress */
+.pt-auto{display:flex;flex-direction:column;gap:12px}
+.pt-auto-bar{height:6px;border-radius:3px;background:var(--soft);overflow:hidden;position:relative}
+.pt-auto-bar i{display:block;height:100%;width:0;background:var(--ink);border-radius:3px;transition:width .3s ease}
+.pt-auto-bar.wait i{width:35%;position:absolute;animation:pt-indet 1.1s ease-in-out infinite}
+@keyframes pt-indet{0%{left:-35%}100%{left:100%}}
+.pt-auto-stage{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
+.pt-auto-thumbs{display:grid;grid-template-columns:repeat(9,1fr);gap:3px}
+.pt-auto-thumbs span{aspect-ratio:3/4;border-radius:4px;overflow:hidden;opacity:.35;transition:opacity .25s;position:relative}
+.pt-auto-thumbs span.done{opacity:1}
+.pt-auto-thumbs img{width:100%;height:100%;object-fit:cover;display:block}
