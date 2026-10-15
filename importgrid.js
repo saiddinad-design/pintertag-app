@@ -24,7 +24,7 @@ window.PT_STORE_URL = window.PT_STORE_URL || '';
     const vk = GC.vibeOf(ms), [vName, vLine] = GC.vibeText(vk), roast = GC.roastOf(ms, fl, score);
     last = { tiles, ratio: r.ratio, score, vk, vName, vLine, roast, flags: fl };
     const mini = tiles.slice(0, 9).map((s, i) => `<div class="m-gc-tile ${fl[i] ? 'flag' : ''}" style="aspect-ratio:${r.ratio === 1 ? '1/1' : r.ratio === 5/4 ? '4/5' : '3/4'}"><img src="${s}" alt=""><span>${String(i+1).padStart(2,'0')}</span></div>`).join('');
-    modal(T('grid check.','grid check.'), `<div class="m-gc-head"><b>${score}</b><span>/100</span><div><i>${esc(vName)}</i><small>${esc(vLine)}</small></div></div>
+    modal(T('grid puanın.','grid check.'), `<div class="m-gc-head"><b>${score}</b><span>/100</span><div><i>${esc(vName)}</i><small>${esc(vLine)}</small></div></div>
       <p class="small muted">${GC.verdict(score)} ${T(`${tiles.length} post okundu.`, `${tiles.length} posts read.`)}</p>
       <div class="m-gc-grid">${mini}</div><ul class="m-gc-roast">${roast.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
       <div class="sheet-actions">${action('m-gc-card', T('Story kartını paylaş','Share the story card'), 'pill solid')}${action('m-gc-dare', T('Arkadaşına meydan oku','Challenge a friend'), 'pill')}

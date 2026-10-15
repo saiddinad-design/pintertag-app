@@ -32,16 +32,19 @@ const GC = (() => {
     // seam runs, then rows of posts between them; dark photos in dark mode can look like background, so rows are checked as whole blocks
     const gaps = []; let gs = -1; for (let y = 0; y <= H; y++){ const ok = y < H && gapRow(y); if (ok && gs < 0) gs = y; if (!ok && gs >= 0){ gaps.push([gs, y]); gs = -1; } }
     const isGap = y => gapRow(y);
-    const check = (a, h) => { if (a < 0 || a + h > H) return false; let seamOk = 0, photo = 0, inner = 0, n = 0;
-      for (let y = a + k*2; y < a + h - k*2; y += 2){ n++; if (seamAt(s1[2], y) && seamAt(s2[2], y)) seamOk++; if (rowS[y] > 30) photo++; if (rowS[y] < 26 && isGap(y)) inner++; }
-      return n > 10 && seamOk / n > .6 && photo / n > .7 && inner / n < .04; };
+    const check = (a, h) => { if (a < 0 || a + h > H) return false; let seamOk = 0, photo = 0, inner = 0, n = 0, run = 0, maxRun = 0;
+      for (let y = a + k*2; y < a + h - k*2; y += 2){ n++; if (seamAt(s1[2], y) && seamAt(s2[2], y)) seamOk++; if (rowS[y] > 30) photo++; if (rowS[y] < 26 && isGap(y)){ inner++; run++; maxRun = Math.max(maxRun, run); } else run = 0; }
+      /* a full-width seam inside the box means it straddles two rows of posts (the "stacked photos" bug) */
+      return n > 10 && seamOk / n > .6 && photo / n > .7 && inner / n < .04 && maxRun * 2 < Math.max(3, k); };
     let best = null;
     for (const ratio of [4/3, 5/4, 1]){ const h = Math.round(tw * ratio), iv = [];
       for (const [ga, gb] of gaps){ for (const top of [gb, ga - h]){ if (check(top, h) && !iv.some(v => Math.abs(v - top) < h * .5)) iv.push(top); } }
-      const sc = iv.reduce((acc, top) => acc + (gaps.some(([ga]) => Math.abs(ga - (top + h)) <= 2*k) ? 2 : 1), 0);
+      /* the right tile shape lines up with a seam above AND below every row; a wrong shape only fits one side */
+      const near = (v, w) => Math.abs(v - w) <= 2*k, above = top => top <= k*2 || gaps.some(([, gb]) => near(gb, top)), below = top => gaps.some(([ga]) => near(ga, top + h));
+      const sc = iv.reduce((acc, top) => acc + (above(top) && below(top) ? 3 : 0), 0);
       if (!best || sc > best.sc) best = { sc, ratio, h, iv: iv.sort((x, y) => x - y) }; }
-    const tiles = []; const ratio = best && best.iv.length ? best.ratio : null;
-    if (ratio) for (const a of best.iv) for (const [x0, x1] of colsX) tiles.push({ x:x0, y:a, w:x1 - x0, h:best.h });
+    const tiles = []; const ratio = best && best.sc > 0 ? best.ratio : null;
+    if (ratio){ const hh = best.h, near = (v, w) => Math.abs(v - w) <= 2*k; const rows = best.iv.filter(top => gaps.some(([ga]) => near(ga, top + hh)) && (top <= k*2 || gaps.some(([, gb]) => near(gb, top)))); for (const a of rows) for (const [x0, x1] of colsX) tiles.push({ x:x0, y:a, w:x1 - x0, h:hh }); }
     if (tiles.length < 3) return null;
     const out = tiles.map(t => { const q = Math.min(1, 720 / t.w), cc = document.createElement('canvas'); cc.width = Math.round(t.w * q); cc.height = Math.round(t.h * q);
       cc.getContext('2d').drawImage(c, t.x, t.y, t.w, t.h, 0, 0, cc.width, cc.height); return cc.toDataURL('image/jpeg', .9); });
@@ -77,7 +80,7 @@ const GC = (() => {
         warm:'{i}. post tek başına güneşte bronzlaşmış.', cool:'{i}. post üşüyor, herkes altın saatte.', sat:'{i}. post bağırıyor, diğerleri fısıldıyor.',
         flat:'{i}. post diğerlerinin yanında solgun kalıyor.', bwpair:'iki siyah-beyaz yan yana. gazete sayfası olmuş.', accent:'vurgu rengi her yerde. vurgu değil, duvar kağıdı olmuş.',
         rhythm:'parlaklık kareden kareye çok değişiyor. grid dağınık görünüyor.', great:'şu an biri bu grid\'in ekran görüntüsünü alıyor.', good:'tek bir değişiklikle bu 90 olur.' },
-      card:{ top:'grid check', foot:'senin grid\'in kaç alır?', by:'pintertag · feed\'inin sanat yönetmeni' },
+      card:{ top:'grid puanı', foot:'senin grid\'in kaç alır?', by:'pintertag · feed\'inin sanat yönetmeni' },
       challenge:'grid\'im {s} aldı, "{v}" çıktı. seninki kaç alır? pintertag' }
   };
   const tx = () => TXT[L()];
