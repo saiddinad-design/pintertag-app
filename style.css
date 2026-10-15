@@ -320,7 +320,7 @@ body{font-variant-emoji:text}
 @keyframes pt-pop{from{opacity:1;transform:scale(0)}to{opacity:1;transform:scale(1)}}
 .pt-intro-word{display:block;overflow:hidden;max-width:0;transition:max-width .62s cubic-bezier(.5,0,.15,1) 1.15s}
 .pt-intro.go .pt-intro-word{max-width:var(--w)}
-.pt-intro-word>span{display:block;white-space:nowrap;padding-left:8px;font:700 36px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:-.045em}
+.pt-intro-word>span{display:block;white-space:nowrap;padding:.12em .08em .26em 8px;margin:-.12em 0 -.26em;font:700 36px/1.1 "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:-.045em}
 .pt-intro-word i{font-style:normal;display:inline-block;opacity:0;filter:blur(3px)}
 .pt-intro.go .pt-intro-word i{animation:pt-letter .34s ease calc(1.22s + var(--i) * .055s) forwards}
 @keyframes pt-letter{0%{opacity:0;filter:blur(3px);color:#9a9a9a}60%{opacity:1;filter:blur(0)}100%{opacity:1;filter:none;color:currentColor}}
