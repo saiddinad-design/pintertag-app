@@ -333,3 +333,17 @@ body{font-variant-emoji:text}
 .pt-pick-tile{display:block;padding:0;border:0;background:var(--soft);aspect-ratio:3/4;overflow:hidden}
 .pt-pick-tile img{width:100%;height:100%;object-fit:cover;display:block}
 .pt-pick-tile:active{opacity:.6}
+
+/* v74 fast labelling */
+.pt-lb{display:flex;flex-direction:column;gap:12px}
+.pt-lb-top{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pt-lb-photo{width:min(58%,240px);margin:0 auto;aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:var(--soft)}
+.pt-lb-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.pt-lb-main{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pt-lb-main .pt-lb-btn{min-height:52px;font-size:16px;font-weight:600}
+.pt-lb-more{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.pt-lb-more .pt-lb-btn{min-height:36px;padding:0 14px;font-size:13px}
+.pt-lb-btn{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;font:inherit;transition:transform .12s,background .12s}
+.pt-lb-btn:active{transform:scale(.96)}
+.pt-lb-btn.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pt-lb-btn.ghost{border-style:dashed;color:var(--muted)}
