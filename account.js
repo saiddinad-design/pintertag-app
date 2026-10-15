@@ -11,10 +11,12 @@
   /* ---------- entitlement ---------- */
   const sub = () => state.sub || (state.sub = { plan: 'free', trialUsed: false, choice: 'year' });
   const daysLeft = () => { const s = sub(); return s.plan === 'trial' ? Math.max(0, Math.ceil((s.trialStart + TRIAL_DAYS*DAY - Date.now()) / DAY)) : 0; };
-  const isPro = () => { const s = sub(); return s.plan === 'pro' || (s.plan === 'trial' && daysLeft() > 0); };
+  /* launch period: every feature free, no paywall. set PT_FREE_LAUNCH = false to switch subscriptions back on (planned 2-3 months after launch) */
+  const FREE_LAUNCH = window.PT_FREE_LAUNCH = window.PT_FREE_LAUNCH !== false;
+  const isPro = () => { if (FREE_LAUNCH) return true; const s = sub(); return s.plan === 'pro' || (s.plan === 'trial' && daysLeft() > 0); };
   const ownPhotos = () => state.photos.filter(p => !p.imported && !/^sample\d+$/.test(p.id)).length;
   const activePlans = () => (state.plans || []).filter(p => !p.done && new Date(p.date + 'T' + (p.time || '19:00')).getTime() > Date.now() - DAY).length;
-  function expire(){ const s = sub(); if (s.plan === 'trial' && daysLeft() <= 0){ s.plan = 'free'; s.trialEnded = Date.now(); save();
+  function expire(){ if (FREE_LAUNCH) return; const s = sub(); if (s.plan === 'trial' && daysLeft() <= 0){ s.plan = 'free'; s.trialEnded = Date.now(); save();
     setTimeout(() => paywall('ended'), 900); } }
   window.PTAcct = { isPro, daysLeft, sub, FREE };
 
@@ -58,7 +60,7 @@
     progress: ['Tüm ilerleme geçmişi Pro’da. Ücretsizde son 7 gün.','Your full progress history is Pro. Free shows the last 7 days.'],
     shots: ['Tam çekim listesi Pro’da. Ücretsizde ilk 3 madde.','The full shot list is Pro. Free shows the first 3.'],
     ended: ['Pro denemen bitti. Hiçbir şeyin silinmedi.','Your Pro trial has ended. Nothing was deleted.'] };
-  function paywall(ctx){ pwCtx = ctx || ''; const s = sub(), choice = s.choice || 'year', canTrial = !s.trialUsed;
+  function paywall(ctx){ if (FREE_LAUNCH) return; pwCtx = ctx || ''; const s = sub(), choice = s.choice || 'year', canTrial = !s.trialUsed;
     const why = REASON[ctx] ? `<p class="m-pw-why">${T(...REASON[ctx])}</p>` : '';
     const opt = (k, title, price, note, tag) => `<button class="m-pw-opt ${choice === k ? 'on' : ''}" data-action="m-pw-plan" data-plan="${k}" aria-pressed="${choice === k}"><span><b>${title}</b><small>${note}</small></span><span class="m-pw-price">${price}</span>${tag ? `<em>${tag}</em>` : ''}</button>`;
     const price = choice === 'year' ? `${PRICE.year}/${T('yıl','year')}` : `${PRICE.month}/${T('ay','month')}`;
@@ -112,7 +114,7 @@
       <button class="pill wide" data-action="m-onb" data-step="signup">${T('Giriş yap ya da hesap aç','Log in or create an account')}</button>
       <button class="text-button wide" data-action="m-onb-guest">${T('Hesapsız dene','Try without an account')}</button></div>
       <p class="pt-onb-legal">${T(`Devam ederek ${legalLink('terms','Kullanım Koşulları')}’nı ve ${legalLink('privacy','Gizlilik Politikası')}’nı kabul etmiş olursun. ${legalLink('kvkk','KVKK Aydınlatma Metni')}`, `By continuing you accept the ${legalLink('terms','Terms')} and ${legalLink('privacy','Privacy Policy')}. ${legalLink('kvkk','KVKK notice')}`)}</p></div>`; }
-  function closeOnb(){ if (onb){ onb.remove(); onb = null; } document.body.classList.remove('pt-onb-open'); render(); keepImport(); if (!sub().trialUsed && !state.trialOffered){ state.trialOffered = true; save(); setTimeout(() => paywall('onboard'), 250); } }
+  function closeOnb(){ if (onb){ onb.remove(); onb = null; } document.body.classList.remove('pt-onb-open'); render(); keepImport(); if (!FREE_LAUNCH && !sub().trialUsed && !state.trialOffered){ state.trialOffered = true; save(); setTimeout(() => paywall('onboard'), 250); } }
   function submitOnb(f){ const name = f.name.value.trim(), email = f.email.value.trim(), err = f.querySelector('#pt-onb-err') || document.getElementById('pt-onb-err');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ err.textContent = T('Geçerli bir e-posta yaz.','Enter a valid email.'); f.email.focus(); return; }
     if (!f.terms.checked){ err.textContent = T('Devam etmek için koşulları kabul etmelisin.','Accept the terms to continue.'); return; }
@@ -135,7 +137,7 @@
   settingsTitle = function(page){ return { acct: T('Hesap','Account'), plan: T('Abonelik','Subscription'), privacy: T('Gizlilik ve yasal','Privacy & legal') }[page] || _title(page); };
   const glyph = { acct: 'M20 21a8 8 0 1 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10', plan: 'M12 2l3 6.5 7 .9-5.1 4.8 1.3 7-6.2-3.4L5.8 21l1.3-7L2 9.4l7-.9z', privacy: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z' };
   const row = (key, value) => `<button class="native-setting-row" data-action="ns-page" data-page="${key}"><span class="native-setting-icon">${settingsGlyph(glyph[key])}</span><span class="native-setting-label">${settingsTitle(key)}</span><span class="native-setting-value">${value || ''}</span>${settingsGlyph('M9 5l7 7-7 7')}</button>`;
-  const planLabel = () => { const s = sub(); return s.plan === 'pro' ? 'Pro' : isPro() ? T(`Deneme · ${daysLeft()} gün`, `Trial · ${daysLeft()} days`) : T('Ücretsiz','Free'); };
+  const planLabel = () => { if (FREE_LAUNCH) return T('Ücretsiz','Free'); const s = sub(); return s.plan === 'pro' ? 'Pro' : isPro() ? T(`Deneme · ${daysLeft()} gün`, `Trial · ${daysLeft()} days`) : T('Ücretsiz','Free'); };
   const shell = content => `<section class="native-settings"><header class="native-settings-header"><button data-action="ns-back" aria-label="${T('Geri','Back')}">${settingsGlyph('M15 5l-7 7 7 7')}</button><h1 id="settings-heading" tabindex="-1">${settingsTitle(settingsScreen)}</h1><span></span></header><div class="native-settings-content">${content}</div></section>`;
   function acctCard(){ const a = state.account, n = a ? a.name : T('Misafir','Guest');
     return `<button class="m-acct-card" data-action="ns-page" data-page="acct"><span class="m-avatar">${esc((n[0] || 'P').toUpperCase())}</span><span><b>${esc(n)}</b><small>${a ? esc(a.email) : T('Hesapsız deniyorsun · verilerin bu cihazda','Trying without an account · data on this device')}</small></span><em class="m-badge ${isPro() ? 'pro' : ''}">${planLabel()}</em></button>`; }
@@ -148,6 +150,7 @@
         <p class="native-setting-note">${T('Çıkış yapınca içeriklerin hesabında saklanır, tekrar girince geri gelir. Şimdilik yalnızca bu cihazda; başka cihazdan erişim sunucu bağlanınca gelecek. Silme işlemi geri alınamaz.','Logging out keeps your content in your account; it comes back when you log in. For now this is on this device only; access from other devices comes with the server. Deleting can’t be undone.')}</p></div>`
       : `<div class="native-setting-copy"><h2>${T('Hesapsız deniyorsun.','You’re trying without an account.')}</h2><p class="muted">${T('Hesap oluşturursan yayın sürümünde fotoğrafların ve planların cihazlar arasında taşınabilecek.','With an account, the release version will carry your photos and plans across devices.')}</p>
         <div class="actions">${action('m-acct-create', T('Hesap oluştur','Create account'), 'pill solid')}${action('export-data', T('Verilerimi indir','Download my data'), 'pill')}${action('m-acct-delete', T('Bu cihazdaki tüm verileri sil','Delete all data on this device'), 'pill m-danger')}</div></div>`; }
+    if (settingsScreen === 'plan' && FREE_LAUNCH) return `<div class="native-setting-copy"><h2>${T('Lansman dönemi: her şey ücretsiz.','Launch period: everything is free.')}</h2><p class="muted">${T('Pintertag’in tüm özelliklerini ücretsiz kullanıyorsun: sınırsız plan, 200 fotoğraf, carousel ve story sırası, tüm ilerleme geçmişi. Ücretli plan gelirse önceden haber vereceğiz; hiçbir ödeme otomatik başlamaz.','You’re using every Pintertag feature for free: unlimited plans, 200 photos, carousel and story order, full progress history. If a paid plan comes, we’ll tell you first; no payment ever starts automatically.')}</p></div>`;
     if (settingsScreen === 'plan'){ const s = sub(), pro = isPro(), used = PTCredits.used(), lim = PTCredits.limit();
       const head = s.plan === 'pro' ? T('Pro aktif.','Pro is active.') : pro ? T(`Pro denemen: ${daysLeft()} gün kaldı.`, `Pro trial: ${daysLeft()} days left.`) : T('Ücretsiz plandasın.','You’re on the free plan.');
       const line = (t, f, p) => `<tr><td>${t}</td><td>${f}</td><td>${p}</td></tr>`;
@@ -178,7 +181,7 @@
     return h; };
 
   /* ---------- grid chip ---------- */
-  function chip(){ const s = sub(); if (s.plan === 'pro') return '';
+  function chip(){ const s = sub(); if (FREE_LAUNCH || s.plan === 'pro') return '';
     if (isPro()){ const d = daysLeft(); return `<button class="m-plan-chip ${d <= 2 ? 'warn' : ''}" data-action="m-pw-open" data-ctx="chip"><span>Pro ${T('deneme','trial')}</span><b>${T(`${d} gün kaldı`, `${d} day${d > 1 ? 's' : ''} left`)}</b></button>`; }
     return `<button class="m-plan-chip" data-action="m-pw-open" data-ctx="chip"><span>${T('Ücretsiz','Free')} · ${ownPhotos()}/${FREE.photos} ${T('fotoğraf','photos')}</span><b>${s.trialUsed ? T('Pro’ya geç','Go Pro') : T('7 gün Pro dene','Try Pro 7 days')}</b></button>`; }
   const _grid = simpleGrid; simpleGrid = function(){ const h = _grid(); return h.replace('<div class="simple-tools">', chip() + '<div class="simple-tools">'); };
