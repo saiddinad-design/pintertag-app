@@ -38,7 +38,7 @@
       mv.forEach(a => tile(a[0], a[1], a[2], a[3], 1)); g.restore();
       // score
       const by = gy + gh + 150;
-      if (sb !== null && sa !== null){ const c = ease((t - T_HOLD - T_MOVE) / .9), v = Math.round(sb + (sa - sb) * c);
+      if (sb !== null && sa !== null && sa > sb){ const c = ease((t - T_HOLD - T_MOVE) / .9), v = Math.round(sb + (sa - sb) * c);
         g.fillStyle = ink; g.font = `700 112px ${sans}`; g.fillText(String(t < T_HOLD + T_MOVE ? sb : v), 90, by + 20);
         const w = g.measureText(String(v)).width; g.font = `500 40px ${sans}`; g.fillStyle = mute; g.fillText(T('/100 · grid uyumu', '/100 · grid harmony'), 90 + w + 16, by + 20);
         if (t > T_HOLD + T_MOVE && sa > sb){ g.globalAlpha = ease((t - T_HOLD - T_MOVE - .6) / .4); g.fillStyle = ink; g.font = `600 40px ${sans}`; g.fillText(`+${sa - sb}`, 90, by + 90); g.globalAlpha = 1; } }

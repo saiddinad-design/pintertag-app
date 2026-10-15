@@ -3,7 +3,7 @@
   for(let i=0;i<items.length;i++){const p=items[i];for(const j of [i-1,grid?i-3:-1]){if(j<0||(grid&&j===i-1&&i%3===0))continue;const q=items[j];if(p.type!=='unknown'&&p.type===q.type){cost+=7;reasons.add('types')}if(p.accent&&q.accent){cost+=5;reasons.add('accent')}if(p.bw&&q.bw){cost+=4;reasons.add('bw')}}
    if(i&&Math.abs(p.light-items[i-1].light)<.15)cost+=style==='bold'?0:1;
   }
-  if(grid)for(let i=0;i<items.length;i+=3){const row=items.slice(i,i+3);if(row.filter(p=>p.accent).length>1){cost+=5;reasons.add('accent')}if(row.length===3&&row.every(p=>p.type==='person')){cost+=12;reasons.add('people')}if(mode==='brand'&&!row.some(p=>['product','detail'].includes(p.type))){cost+=8;reasons.add('product')}}
+  if(grid)for(let i=0;i<items.length;i+=3){const row=items.slice(i,i+3);if(row.filter(p=>p.accent).length>1){cost+=5;reasons.add('accent')}if(row.length===3&&row.every(p=>p.type==='person')){cost+=mode==='brand'?4:1}if(mode==='brand'&&i>0&&!row.some(p=>['product','detail'].includes(p.type))){cost+=3;reasons.add('product')}}
   if(mode==='personal'&&items.filter(p=>p.type==='person').length>4){cost+=6;reasons.add('people')}
   if(items.filter(p=>p.type==='text').length>1){cost+=7;reasons.add('text')}
   return {cost,reasons:[...reasons]};

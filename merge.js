@@ -87,11 +87,13 @@
     const fixed = rb.filter(k => !ra.includes(k) && WHY[k]).map(k => T(...WHY[k]));
     if (sa && sb && sb.lsd - sa.lsd > 1.5 && fixed.length < 2) fixed.push(T('ışık seviyesi daha tutarlı','light level is more even'));
     if (!fixed.length && sa && sb && sa.rhythm > sb.rhythm + .05) fixed.push(T('benzer kareler artık yan yana değil','look-alike frames no longer sit side by side'));
+    const pv = simplePreview; if (pv && pv.why){ if (pv.why.includes('accent')) fixed.unshift(T('yan yana duran iki renkli kare ayrıldı','two loud colour frames no longer touch')); if (pv.why.includes('twin')) fixed.unshift(T('birbirinin aynısı iki kare ayrıldı','two near-identical frames were split')); }
     const unknown = items(after).filter(p => p.type === 'unknown').length;
     let h = '<div class="m-why">';
-    if (sb && sa) h += `<p class="m-score"><span>${T('Seçtiğin stile uyum','Match with your style')}</span><b>${sb.total} → ${sa.total}</b></p>`;
+    const sameSet = before.slice(0,9).slice().sort().join() === after.slice(0,9).slice().sort().join();
+    if (sb && sa) h += sameSet ? `<p class="m-score"><span>${T('Grid uyumu','Grid harmony')}</span><b>${sa.total}</b></p>` : `<p class="m-score"><span>${T('Grid uyumu','Grid harmony')}</span><b>${sb.total} → ${sa.total}</b></p>`;
     if (fixed.length) h += `<p>${T('Neden böyle:','Why this order:')} ${fixed.slice(0,2).join(', ')}.</p>`;
-    if (unknown) h += `<p class="small muted">${T(`${unknown} karenin türü belli değil; bunlar için sıralama ışık ve renge bakıyor.`, `${unknown} photos have no type yet; for those the order follows light and colour.`)}</p>`;
+    if (unknown) h += `<p class="small muted">${T(`${unknown} karenin türü belli değil; o yüzden sırana sadece kesin hatalar için dokundum.`, `${unknown} photos have no type yet, so I only fixed clear mistakes in your order.`)} ${action('label-photos', T('Türleri işaretle','Label types'), 'text-button')}</p>`;
     return h + '</div>'; }
   const _cmp = simpleComparison;
   simpleComparison = function(){ const h = _cmp(); const p = simplePreview; if (!p) return h; return h.replace('<div class="compare-actions">', whyBlock(p.before, p.after) + '<div class="compare-actions">'); };
@@ -138,17 +140,53 @@
     if (!s){ skip = []; toast(T('Önerecek planlanmamış fotoğraf kalmadı. Yeni fotoğraf ekle.', 'No unplanned photos left to suggest. Add new photos.')); return; }
     modal(T('bugün bunu paylaş.','post this today.'), `<div class="simple-sheet-photo">${simpleImage(s.p.id)}</div><p class="m-reason">${esc(s.why)}</p><div class="sheet-actions">${action('m-today-plan',T('Bugüne planla','Plan it for today'),'pill solid',`data-id="${esc(s.p.id)}"`)}${action('m-today-next',T('Başka öner','Suggest another'),'pill',`data-id="${esc(s.p.id)}"`)}</div><p class="small muted space">${T('Öneri bu cihazdaki fotoğraflarından ve planlarından çıkar. Instagram hesabına bağlanmaz.','The pick comes from the photos and plans on this device. It does not connect to Instagram.')}</p>`); }
 
-  /* arrange: their rule engine first, then a pass that also weighs tone and light; never hand back an order that scores lower */
+  /* arrange (v71). What 48 reference grids + a real before/after test taught us:
+     - light/colour stats alone can't tell a good order from a bad one (people judged a human order better than our "improved" one);
+       what they see first is WHAT each frame shows: a full look, a detail, a product, a place.
+     - so without photo types we respect the user's own order and only fix what pixels can see for sure:
+       two loud colour frames side by side, or two near-identical frames side by side. at most two swaps, top row kept if possible.
+     - with photo types (AI or hand-labelled) the rule engine runs, plus a storefront rule for the top row. never return a worse order. */
   const _arrange = simpleArrange;
-  simpleArrange = function(){ _arrange(); const pv = simplePreview; if (!pv) return;
-    const before = pv.before, all = before.map(simplePhoto); if (all.some(p => !p || !p.m)) return;
-    const val = ids => { const sc = scoreGrid(msOf(ids.slice(0,9))); const cf = PTEngine.conflicts(ids.slice(0,9).map(simplePhoto), state.mode, 'grid', state.style).cost; return (sc ? sc.total : 0) - cf * .8; };
+  const NB = i => { const o = []; if (i % 3 < 2) o.push(i + 1); if (i + 3 < 9) o.push(i + 3); return o; };
+  const twin = (a, b) => a && b && a.v === 2 && b.v === 2 && hd(a, b) < .35 && Math.abs(a.L - b.L) < 6;
+  function problems(ids){ const ps = ids.slice(0, 9).map(simplePhoto), out = [];
+    for (let i = 0; i < ps.length; i++) for (const j of NB(i)){ if (j >= ps.length) continue; const a = ps[i], b = ps[j]; if (!a || !b) continue;
+      if (a.accent && b.accent) out.push({ i, j, k: 'accent' }); else if (twin(a.m, b.m)) out.push({ i, j, k: 'twin' }); }
+    return out; }
+  function storefront(ids){ const top = ids.slice(0, 3).map(simplePhoto).filter(Boolean), all = ids.slice(0, 9).map(simplePhoto).filter(Boolean); let cost = 0;
+    if (all.some(p => p.type === 'person') && !top.some(p => p.type === 'person')) cost += 10;
+    const lead = all.filter(p => ['person','product','place'].includes(p.type)).length;
+    if (lead >= 3) cost += 5 * top.filter(p => ['detail','object','text','break'].includes(p.type)).length;
+    if (state.mode === 'brand' && all.some(p => p.type === 'product') && !top.some(p => ['product','person'].includes(p.type))) cost += 6;
+    return cost; }
+  function gentle(before){ let cur = [...before]; const why = new Set(); const fixed = i => { const p = simplePhoto(cur[i]); return !p || p.locked; };
+    for (let step = 0; step < 2; step++){ const pr = problems(cur); if (!pr.length) break;
+      let best = null;
+      for (const { i, j, k } of pr){ const mv = Math.max(i, j); if (fixed(mv)) continue;
+        for (let t = 0; t < Math.min(cur.length, 12); t++){ if (t === mv || fixed(t) || t === Math.min(i, j)) continue;
+          const c = [...cur]; [c[mv], c[t]] = [c[t], c[mv]]; const n = problems(c).length; if (n >= pr.length) continue;
+          const cost = n * 10 + (t < 3 || mv < 3 ? 3 : 0) + Math.abs(t - mv) * .1;
+          if (!best || cost < best.cost) best = { c, cost, k }; } }
+      if (!best) break; cur = best.c; why.add(best.k); }
+    return { after: cur, why: [...why] }; }
+  simpleArrange = function(){ const before = [...simpleIds()]; if (before.length < 2) return _arrange();
+    const top = before.slice(0, 9).map(simplePhoto); if (top.some(p => !p || !p.m)) return _arrange();
+    const unknown = top.filter(p => p.type === 'unknown').length;
+    if (unknown > 3){ const g = gentle(before);
+      if (g.after.every((id, i) => id === before[i])){ simplePreview = null; render();
+        modal(T('sıran dengeli.','your order holds up.'), `<p class="m-reason">${T('Yan yana iki renkli ya da birbirinin aynısı iki kare yok; sıranı bozmadım.','No two loud or near-identical frames sit side by side, so I left your order alone.')}</p><p class="small muted">${T(`Daha iyi bir sıra için ${unknown} karenin ne gösterdiğini bilmem gerekiyor: kişi, detay, ürün ya da mekân. 1 dakika sürer.`, `For a better order I need to know what ${unknown} photos show: person, detail, product or place. Takes a minute.`)}</p><div class="sheet-actions">${action('label-photos', T('Kare türlerini işaretle','Label photo types'), 'pill solid')}</div>`); return; }
+      simplePreview = { before, after: g.after, why: g.why }; render(); return; }
+    _arrange(); const pv = simplePreview; if (!pv) return;
+    const val = ids => { const sc = scoreGrid(msOf(ids.slice(0,9))); const cf = PTEngine.conflicts(ids.slice(0,9).map(simplePhoto), state.mode, 'grid', state.style).cost; return (sc ? sc.total : 0) - cf * .8 - storefront(ids) - problems(ids).length * 4; };
     const free = before.map((id,i) => simplePhoto(id).locked ? -1 : i).filter(i => i >= 0);
-    let best = [...pv.after], bv = val(best); let seed = 97; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    for (let k = 0; k < 900 && free.length > 1; k++){ const a = free[Math.floor(rnd()*free.length)], c = free[Math.floor(rnd()*free.length)]; if (a === c) continue;
-      const t = [...best]; [t[a], t[c]] = [t[c], t[a]]; const tv = val(t); if (tv >= bv){ best = t; bv = tv; } }
-    const sb = scoreGrid(msOf(before.slice(0,9))), sa = scoreGrid(msOf(best.slice(0,9)));
-    if (sb && sa && sa.total < sb.total && val(best) <= val(before)) best = [...before];
+    /* at most three swaps, each the single best one available, each worth at least 2 points: the user's order is the starting point, not noise */
+    let best = [...before], bv = val(best);
+    for (let step = 0; step < 3; step++){ let pick = null;
+      for (let x = 0; x < free.length; x++) for (let y = x + 1; y < free.length; y++){ const a = free[x], c = free[y]; if (a >= 9 && c >= 9) continue;
+        const t = [...best]; [t[a], t[c]] = [t[c], t[a]]; const tv = val(t) - (a < 3 || c < 3 ? .5 : 0); if (tv > bv + 2 && (!pick || tv > pick.tv)) pick = { t, tv }; }
+      if (!pick) break; best = pick.t; bv = val(best); }
+    if (val(best) <= val(before) + 3) best = [...before];
+    if (best.every((id, i) => id === before[i])){ simplePreview = null; render(); toast(T('Sıran zaten iyi; değiştirmedim.','Your order already works; I left it.')); return; }
     simplePreview = { before, after: best }; render(); };
 
   const _grid = simpleGrid;
