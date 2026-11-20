@@ -13,6 +13,9 @@
   const daysLeft = () => { const s = sub(); return s.plan === 'trial' ? Math.max(0, Math.ceil((s.trialStart + TRIAL_DAYS*DAY - Date.now()) / DAY)) : 0; };
   /* launch period: every feature free, no paywall. set PT_FREE_LAUNCH = false to switch subscriptions back on (planned 2-3 months after launch) */
   const FREE_LAUNCH = window.PT_FREE_LAUNCH = window.PT_FREE_LAUNCH !== false;
+  /* first app store release: no accounts at all. everything stays on the device, so there is no sign-in, password, email check
+     or account deletion to ship. set PT_NO_ACCOUNTS = false to bring the account screens back (they need a server first). */
+  const NO_ACCOUNTS = window.PT_NO_ACCOUNTS = window.PT_NO_ACCOUNTS !== false;
   const isPro = () => { if (FREE_LAUNCH) return true; const s = sub(); return s.plan === 'pro' || (s.plan === 'trial' && daysLeft() > 0); };
   const ownPhotos = () => state.photos.filter(p => !p.imported && !/^sample\d+$/.test(p.id)).length;
   const activePlans = () => (state.plans || []).filter(p => !p.done && new Date(p.date + 'T' + (p.time || '19:00')).getTime() > Date.now() - DAY).length;
@@ -86,7 +89,8 @@
   /* ---------- onboarding ---------- */
   let onb = null, pendingKeep = false;
   function keepImport(){ if (!pendingKeep) return; pendingKeep = false; const b = document.createElement('button'); b.dataset.action = 'm-gc-keep'; b.hidden = true; document.body.appendChild(b); b.click(); b.remove(); }
-  function onboard(step){ if (!onb){ onb = document.createElement('div'); onb.id = 'pt-onb'; onb.setAttribute('role', 'dialog'); onb.setAttribute('aria-modal', 'true'); document.body.appendChild(onb); }
+  function onboard(step){ if (NO_ACCOUNTS && (step === 'email' || step === 'signup')){ state.guest = true; save(); closeOnb(); return; }
+    if (!onb){ onb = document.createElement('div'); onb.id = 'pt-onb'; onb.setAttribute('role', 'dialog'); onb.setAttribute('aria-modal', 'true'); document.body.appendChild(onb); }
     document.body.classList.add('pt-onb-open');
     if (step === 'email'){ onb.innerHTML = `<div class="pt-onb-in"><button class="pt-onb-back" data-action="m-onb" data-step="signup" aria-label="${T('Geri','Back')}">‹</button>
       <h1>${T('e-postanla devam et.','continue with email.')}</h1><p class="pt-onb-sub">${T('Şifre yok. Bu sürümde hesabın yalnızca bu cihazda tutulur.','No password. In this version your account stays on this device.')}</p>
@@ -108,11 +112,11 @@
       <p class="pt-onb-legal">${T(`Devam ederek ${legalLink('terms','Kullanım Koşulları')}’nı ve ${legalLink('privacy','Gizlilik Politikası')}’nı kabul etmiş olursun. ${legalLink('kvkk','KVKK Aydınlatma Metni')}`, `By continuing you accept the ${legalLink('terms','Terms')} and ${legalLink('privacy','Privacy Policy')}. ${legalLink('kvkk','KVKK notice')}`)}</p></div>`; return; }
     onb.innerHTML = `<div class="pt-onb-in pt-onb-welcome"><p class="pt-onb-brand"><img class="pt-onb-logo" src="assets/logo.png" alt="">pintertag</p>
       <h1>${T('grid’in kaç puan?','what does your grid score?')}</h1>
-      <p class="pt-onb-lead">${T('Instagram profilinin ekran görüntüsünü at. 10 saniyede puanını, vibe’ını ve neyi düzeltmen gerektiğini söyleyelim. Kayıt sonra.','Drop a screenshot of your Instagram profile. In 10 seconds we’ll tell you your score, your vibe and what to fix. Sign-up comes later.')}</p>
-      ${state.remembered ? `<div class="pt-onb-remember"><button class="m-acct-card" data-action="m-onb-again"><span class="m-avatar">${esc((state.remembered.name[0] || 'P').toUpperCase())}</span><span><b>${T(`${esc(state.remembered.name)} olarak devam et`, `Continue as ${esc(state.remembered.name)}`)}</b><small>${esc(state.remembered.email)}</small></span></button><button class="m-link pt-onb-forget" type="button" data-action="m-onb-forget">${T('Bu cihazdan kaldır','Remove from this device')}</button></div>` : ''}
+      <p class="pt-onb-lead">${T('Instagram profilinin ekran görüntüsünü at. 10 saniyede puanını, vibe’ını ve neyi düzeltmen gerektiğini söyleyelim.' + (NO_ACCOUNTS ? ' Hesap yok, her şey telefonunda kalır.' : ' Kayıt sonra.'),'Drop a screenshot of your Instagram profile. In 10 seconds we’ll tell you your score, your vibe and what to fix.' + (NO_ACCOUNTS ? ' No account; everything stays on your phone.' : ' Sign-up comes later.'))}</p>
+      ${state.remembered && !NO_ACCOUNTS ? `<div class="pt-onb-remember"><button class="m-acct-card" data-action="m-onb-again"><span class="m-avatar">${esc((state.remembered.name[0] || 'P').toUpperCase())}</span><span><b>${T(`${esc(state.remembered.name)} olarak devam et`, `Continue as ${esc(state.remembered.name)}`)}</b><small>${esc(state.remembered.email)}</small></span></button><button class="m-link pt-onb-forget" type="button" data-action="m-onb-forget">${T('Bu cihazdan kaldır','Remove from this device')}</button></div>` : ''}
       <div class="pt-onb-actions"><button class="pt-onb-hero" data-action="m-shot"><span class="pt-onb-hero-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3.2"/></svg></span><span><b>${T('Grid’imi puanla','Score my grid')}</b><small>${T('Profil ekran görüntüsüyle · hiçbir yere yüklenmez','With a profile screenshot · nothing is uploaded')}</small></span></button>
-      <button class="pill wide" data-action="m-onb" data-step="signup">${T('Giriş yap ya da hesap aç','Log in or create an account')}</button>
-      <button class="text-button wide" data-action="m-onb-guest">${T('Hesapsız dene','Try without an account')}</button></div>
+      ${NO_ACCOUNTS ? `<button class="pill wide" data-action="m-onb-guest">${T('Fotoğraflarınla başla','Start with your photos')}</button>` : `<button class="pill wide" data-action="m-onb" data-step="signup">${T('Giriş yap ya da hesap aç','Log in or create an account')}</button>
+      <button class="text-button wide" data-action="m-onb-guest">${T('Hesapsız dene','Try without an account')}</button>`}</div>
       <p class="pt-onb-legal">${T(`Devam ederek ${legalLink('terms','Kullanım Koşulları')}’nı ve ${legalLink('privacy','Gizlilik Politikası')}’nı kabul etmiş olursun. ${legalLink('kvkk','KVKK Aydınlatma Metni')}`, `By continuing you accept the ${legalLink('terms','Terms')} and ${legalLink('privacy','Privacy Policy')}. ${legalLink('kvkk','KVKK notice')}`)}</p></div>`; }
   function closeOnb(){ if (onb){ onb.remove(); onb = null; } document.body.classList.remove('pt-onb-open'); render(); keepImport(); if (!FREE_LAUNCH && !sub().trialUsed && !state.trialOffered){ state.trialOffered = true; save(); setTimeout(() => paywall('onboard'), 250); } }
   function submitOnb(f){ const name = f.name.value.trim(), email = f.email.value.trim(), err = f.querySelector('#pt-onb-err') || document.getElementById('pt-onb-err');
@@ -134,15 +138,19 @@
 
   /* ---------- settings ---------- */
   const _title = settingsTitle;
-  settingsTitle = function(page){ return { acct: T('Hesap','Account'), plan: T('Abonelik','Subscription'), privacy: T('Gizlilik ve yasal','Privacy & legal') }[page] || _title(page); };
+  settingsTitle = function(page){ return { acct: NO_ACCOUNTS ? T('Verilerin','Your data') : T('Hesap','Account'), plan: T('Abonelik','Subscription'), privacy: T('Gizlilik ve yasal','Privacy & legal') }[page] || _title(page); };
   const glyph = { acct: 'M20 21a8 8 0 1 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10', plan: 'M12 2l3 6.5 7 .9-5.1 4.8 1.3 7-6.2-3.4L5.8 21l1.3-7L2 9.4l7-.9z', privacy: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z' };
   const row = (key, value) => `<button class="native-setting-row" data-action="ns-page" data-page="${key}"><span class="native-setting-icon">${settingsGlyph(glyph[key])}</span><span class="native-setting-label">${settingsTitle(key)}</span><span class="native-setting-value">${value || ''}</span>${settingsGlyph('M9 5l7 7-7 7')}</button>`;
   const planLabel = () => { if (FREE_LAUNCH) return T('Ücretsiz','Free'); const s = sub(); return s.plan === 'pro' ? 'Pro' : isPro() ? T(`Deneme · ${daysLeft()} gün`, `Trial · ${daysLeft()} days`) : T('Ücretsiz','Free'); };
   const shell = content => `<section class="native-settings"><header class="native-settings-header"><button data-action="ns-back" aria-label="${T('Geri','Back')}">${settingsGlyph('M15 5l-7 7 7 7')}</button><h1 id="settings-heading" tabindex="-1">${settingsTitle(settingsScreen)}</h1><span></span></header><div class="native-settings-content">${content}</div></section>`;
-  function acctCard(){ const a = state.account, n = a ? a.name : T('Misafir','Guest');
+  function acctCard(){ if (NO_ACCOUNTS) return `<button class="m-acct-card" data-action="ns-page" data-page="acct"><span class="m-avatar" aria-hidden="true">#</span><span><b>${T('Bu cihaz','This device')}</b><small>${T('Hesap yok · her şey bu telefonda','No account · everything stays on this phone')}</small></span><em class="m-badge ${isPro() ? 'pro' : ''}">${planLabel()}</em></button>`;
+    const a = state.account, n = a ? a.name : T('Misafir','Guest');
     return `<button class="m-acct-card" data-action="ns-page" data-page="acct"><span class="m-avatar">${esc((n[0] || 'P').toUpperCase())}</span><span><b>${esc(n)}</b><small>${a ? esc(a.email) : T('Hesapsız deniyorsun · verilerin bu cihazda','Trying without an account · data on this device')}</small></span><em class="m-badge ${isPro() ? 'pro' : ''}">${planLabel()}</em></button>`; }
   function meter(used, max){ const pct = Math.min(100, Math.round(used / max * 100)); return `<div class="m-meter"><i style="width:${pct}%"></i></div>`; }
   function page(){
+    if (settingsScreen === 'acct' && NO_ACCOUNTS) return `<div class="native-setting-copy"><h2>${T('Hesap yok, her şey bu telefonda.','No account. Everything stays on this phone.')}</h2><p class="muted">${T('Fotoğrafların, planların ve ayarların sadece bu cihazda saklanır; bize gönderilmez. Telefon değiştirmeden ya da uygulamayı silmeden önce yedeğini indir.','Your photos, plans and settings are stored only on this device and never sent to us. Download a backup before you change phones or delete the app.')}</p>
+        <div class="actions">${action('export-data', T('Verilerimi indir','Download my data'), 'pill')}${action('m-acct-delete', T('Bu cihazdaki tüm verileri sil','Delete all data on this device'), 'pill m-danger')}</div>
+        <p class="native-setting-note">${T('Silme işlemi geri alınamaz.','Deleting can’t be undone.')}</p></div>`;
     if (settingsScreen === 'acct'){ const a = state.account;
       return a ? `<div class="native-setting-copy"><div class="m-acct-head"><span class="m-avatar big">${esc(a.name[0].toUpperCase())}</span><div><b>${esc(a.name)}</b><small>${esc(a.email)}</small></div></div>
         <dl class="m-dl"><dt>${T('Giriş','Sign-in')}</dt><dd>${T('E-posta','Email')}</dd><dt>${T('Katılma','Joined')}</dt><dd>${new Date(a.created).toLocaleDateString(state.lang === 'tr' ? 'tr-TR' : 'en-GB')}</dd><dt>${T('Hesap nerede','Stored')}</dt><dd>${T('Bu cihazda','On this device')}</dd></dl>
@@ -170,14 +178,14 @@
         ${tog('m-ai-toggle', ai, T('AI etiketleme','AI tagging'), T('Açıkken fotoğraf önizlemeleri tür tespiti için yurt dışındaki AI sağlayıcısına gönderilir. Kapalıyken hiçbir şey cihazdan çıkmaz.','When on, small previews go to the AI provider abroad to detect photo type. When off, nothing leaves your device.'))}
         ${tog('m-mkt-toggle', mk, T('E-posta ile haberler','News by email'), T('Yenilik ve kampanyalar. İstediğin an kapat.','News and offers. Turn off anytime.'))}
         <div class="native-setting-list secondary">${['privacy', 'terms', 'kvkk'].map(d => `<button class="native-setting-row" data-action="m-legal" data-doc="${d}"><span class="native-setting-label">${T(PTLegal[d].tr, PTLegal[d].en)}</span><span class="native-setting-value"></span>${settingsGlyph('M9 5l7 7-7 7')}</button>`).join('')}</div>
-        <p class="native-setting-note">${T('Verilerini indirmek ya da silmek için: Ayarlar > Hesap.','To download or delete your data: Settings > Account.')}</p></div>`; }
+        <p class="native-setting-note">${NO_ACCOUNTS ? T('Verilerini indirmek ya da silmek için: Ayarlar > Verilerin.','To download or delete your data: Settings > Your data.') : T('Verilerini indirmek ya da silmek için: Ayarlar > Hesap.','To download or delete your data: Settings > Account.')}</p></div>`; }
     return '';
   }
   const _page = settingsPage;
   settingsPage = function(){ if (MINE.includes(settingsScreen)) return shell(page());
     let h = _page(); if (settingsScreen === 'home'){ h = h.replace('<div class="native-setting-list">', `${acctCard()}<div class="native-setting-list">${row('plan', planLabel())}${row('privacy')}</div><div class="native-setting-list secondary">`);
       const a = state.account, login = `<div class="m-login"><p>${T('Giriş','Login')}</p>${a ? `<button class="m-login-row out" data-action="m-acct-logout">${T(`Çıkış yap: ${esc(a.name)}`, `Log out ${esc(a.name)}`)}</button>` : `<button class="m-login-row" data-action="m-acct-login">${T('Giriş yap ya da hesap oluştur','Log in or create an account')}</button>`}</div>`;
-      h = h.replace(/<\/div><\/section>$/, login + '</div></section>'); }
+      if (!NO_ACCOUNTS) h = h.replace(/<\/div><\/section>$/, login + '</div></section>'); }
     return h; };
 
   /* ---------- grid chip ---------- */
@@ -202,7 +210,7 @@
     if (a === 'm-onb-guest'){ state.guest = true; save(); closeOnb(); }
     if (a === 'm-onb-sso') modal(T(`${b.dataset.p} ile giriş yakında.`, `${b.dataset.p} sign-in is coming.`), `<p class="m-reason">${T(`${b.dataset.p} ile giriş App Store sürümünde açılacak; bunun için sunucu gerekiyor. Şimdilik e-posta ile devam edebilirsin, hesabın bu cihazda tutulur.`, `${b.dataset.p} sign-in opens with the App Store release; it needs a server. For now continue with email; your account stays on this device.`)}</p>${action('m-onb-email', T('E-posta ile devam et','Continue with email'), 'pill solid wide')}`);
     if (a === 'm-onb-email'){ closeModal(); onboard('email'); }
-    if (a === 'm-onb-save'){ pendingKeep = true; closeModal(); onboard('signup'); }
+    if (a === 'm-onb-save'){ pendingKeep = true; closeModal(); if (NO_ACCOUNTS){ state.guest = true; save(); closeOnb(); } else onboard('signup'); }
     if (a === 'm-legal'){ e.preventDefault(); openDoc(b.dataset.doc, document.getElementById('modal').open && pwCtx !== null && document.querySelector('.m-pw-opts') ? (pwCtx || 'chip') : ''); }
     if (a === 'm-pw-open') paywall(b.dataset.ctx || '');
     if (a === 'm-pw-plan'){ sub().choice = b.dataset.plan; save(); paywall(pwCtx); }
