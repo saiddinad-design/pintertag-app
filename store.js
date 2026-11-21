@@ -28,12 +28,17 @@
   root.PTStore = { save, hydrate, isRef };
   /* high-quality copy of every upload (long side 2160, jpeg .92). the 800px preview stays for the planner;
      crops and shares are rendered from this copy so nothing posted is degraded. key = <photo id>:orig */
-  const HQ = 2160, objUrls = {};
+  const HQ = 3240, objUrls = {};
   const blobOf = (canvas, q) => new Promise(res => canvas.toBlob(b => res(b), 'image/jpeg', q));
   root.PTHQ = {
-    async fromImage(id, im){ try { const r = Math.min(1, HQ / Math.max(im.naturalWidth || im.width, im.naturalHeight || im.height)), c = document.createElement('canvas');
-      c.width = Math.round((im.naturalWidth || im.width) * r); c.height = Math.round((im.naturalHeight || im.height) * r); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
-      const b = await blobOf(c, .92); if (b){ await put(id + ':orig', b); if (objUrls[id]){ URL.revokeObjectURL(objUrls[id]); delete objUrls[id]; } } return !!b; } catch(_) { return false; } },
+    async fromImage(id, im){
+      /* keep the photo's own file when we can (no re-encode = no quality loss); else a 3240 px copy at .95 */
+      try { const src = im && im.currentSrc || im.src || '', long = Math.max(im.naturalWidth || 0, im.naturalHeight || 0);
+        if (/^blob:/.test(src) && long && long <= 6000){ const b = await (await fetch(src)).blob();
+          if (b && b.size && b.size <= 15 * 1024 * 1024 && /^image\/(jpeg|png|webp)$/.test(b.type)){ await put(id + ':orig', b); if (objUrls[id]){ URL.revokeObjectURL(objUrls[id]); delete objUrls[id]; } return true; } } } catch(_) {}
+      try { const r = Math.min(1, HQ / Math.max(im.naturalWidth || im.width, im.naturalHeight || im.height)), c = document.createElement('canvas');
+      c.width = Math.round((im.naturalWidth || im.width) * r); c.height = Math.round((im.naturalHeight || im.height) * r); { const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(im, 0, 0, c.width, c.height); }
+      const b = await blobOf(c, .95); if (b){ await put(id + ':orig', b); if (objUrls[id]){ URL.revokeObjectURL(objUrls[id]); delete objUrls[id]; } } return !!b; } catch(_) { return false; } },
     get: id => get(id + ':orig').then(b => b instanceof Blob ? b : null),
     async url(id){ if (objUrls[id]) return objUrls[id]; const b = await root.PTHQ.get(id); return b ? (objUrls[id] = URL.createObjectURL(b)) : null; },
     /* the file that goes to instagram: the crop at 1080x1440 when there is one, else the hq copy */
@@ -42,6 +47,6 @@
       if (!p.crop || typeof cropGeometry !== 'function') return new File([b], name, { type: 'image/jpeg' });
       const u = URL.createObjectURL(b); try { const im = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = u; });
         const W = 1080, H = 1440, c = document.createElement('canvas'); c.width = W; c.height = H; const g = cropGeometry(im.naturalWidth, im.naturalHeight, W, H, p.crop.z, p.crop.x, p.crop.y);
-        c.getContext('2d').drawImage(im, g.left, g.top, g.dw, g.dh); const o = await blobOf(c, .92); return new File([o], name, { type: 'image/jpeg' }); } finally { URL.revokeObjectURL(u); } }
+        { const x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(im, g.left, g.top, g.dw, g.dh); } const o = await blobOf(c, .95); return new File([o], name, { type: 'image/jpeg' }); } finally { URL.revokeObjectURL(u); } }
   };
 })(window);

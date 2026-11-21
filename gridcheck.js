@@ -44,7 +44,14 @@ const GC = (() => {
       const sc = iv.reduce((acc, top) => acc + (above(top) && below(top) ? 3 : 0), 0);
       if (!best || sc > best.sc) best = { sc, ratio, h, iv: iv.sort((x, y) => x - y) }; }
     const tiles = []; const ratio = best && best.sc > 0 ? best.ratio : null;
-    if (ratio){ const hh = best.h, near = (v, w) => Math.abs(v - w) <= 2*k; const rows = best.iv.filter(top => gaps.some(([ga]) => near(ga, top + hh)) && (top <= k*2 || gaps.some(([, gb]) => near(gb, top)))); for (const a of rows) for (const [x0, x1] of colsX) tiles.push({ x:x0, y:a, w:x1 - x0, h:hh }); }
+    if (ratio){ const hh = best.h, near = (v, w) => Math.abs(v - w) <= 2*k; const rows = best.iv.filter(top => gaps.some(([ga]) => near(ga, top + hh)) && (top <= k*2 || gaps.some(([, gb]) => near(gb, top))));
+      /* rows next to a confirmed one whose own edge is hidden (tab underline above, pin icons, the bar below) still count:
+         step from the confirmed rows by one row height and keep any full row that checks out */
+      if (rows.length){ rows.sort((x, y) => x - y); const seamH = rows.length > 1 ? Math.max(1, Math.min(...rows.slice(1).map((v, i) => v - rows[i])) - hh) : Math.max(2, Math.round(tw * .006)), step = hh + seamH;
+        const fits = t => [0, -1, 1, -2, 2, -3, 3].map(d => t + d).find(tt => check(tt, hh));
+        for (let t = rows[0] - step; t >= 0; t -= step){ const f = fits(t); if (f === undefined) break; rows.unshift(f); t = f; }
+        for (let t = rows[rows.length - 1] + step; t + hh <= H; t += step){ const f = fits(t); if (f === undefined) break; rows.push(f); t = f; } }
+      for (const a of rows) for (const [x0, x1] of colsX) tiles.push({ x:x0, y:a, w:x1 - x0, h:hh }); }
     if (tiles.length < 3) return null;
     const out = tiles.map(t => { const q = Math.min(1, 720 / t.w), cc = document.createElement('canvas'); cc.width = Math.round(t.w * q); cc.height = Math.round(t.h * q);
       cc.getContext('2d').drawImage(c, t.x, t.y, t.w, t.h, 0, 0, cc.width, cc.height); return cc.toDataURL('image/jpeg', .9); });
@@ -107,47 +114,69 @@ const GC = (() => {
     if (!out.length) out.push(score >= 90 ? T.great : T.good);
     return out.slice(0, 3); }
   const verdict = s => tx().verdict[s >= 90 ? 0 : s >= 80 ? 1 : s >= 70 ? 2 : 3];
-  /* 1080x1920 story card */
+  /* 1080x1920 story card: everything centred on one axis, the 9 posts on a white sheet,
+     three backgrounds (pink default). kept inside Instagram's safe zone (top ~250, bottom ~340). */
+  const THEMES = {
+    pink:  { bg: '#F5CCD6', bg2: '#F9DDE3', ink: '#1B1214', mute: '#8A5560', sheet: '#ffffff', dot: '#D7263D' },
+    cream: { bg: '#EFE9DF', bg2: '#F6F2EB', ink: '#151412', mute: '#6F6A62', sheet: '#ffffff', dot: '#D7263D' },
+    black: { bg: '#121211', bg2: '#1C1C1A', ink: '#F3EFE8', mute: '#A39E95', sheet: '#232321', dot: '#FF5A6E' }
+  };
+  /* one line per grid: picked by score band, varied by the grid itself so two grids rarely get the same one */
+  const LINES = {
+    tr: [
+      ['bu grid’i kaydedip moodboard’a koyuyorlar.','profiline girenler takip etmeden çıkamıyor.','bu feed’in sanat yönetmeni var gibi.','her kare yerini bilmiş, kimse kimseyi ezmiyor.','burası grid değil, sergi.','scroll’u yavaşlatan cinsten.','tek kelime: tutarlı. iki kelime: çok tutarlı.','bu grid’e ekran görüntüsü alınır.','renkler aynı dili konuşuyor.','şu an biri bu grid’i arkadaşına atıyor.'],
+      ['bir kare daha düzelirse müze olur.','neredeyse kusursuz, bir post fazla bağırıyor.','çok iyi, ama bir kare yanlış partiye gelmiş.','ritim tutuyor, sadece bir yerde tökezliyor.','takip ettirir. bir kareyi değiştir, kaydettirir.','sakin ve güçlü. birini öne al, tamam.','iyi göz, eksik son dokunuş.','buradan sonrası detay işi.','profil temiz, bir kare kendi kafasında.','neredeyse estetik hesap seviyesi.'],
+      ['iyi niyet var, plan yok.','güzel kareler, birbirini tanımıyor.','her post tek başına iyi, birlikte kalabalık.','bu grid bir toplantı, herkes aynı anda konuşuyor.','ışık bir sağa bir sola, göz yoruluyor.','potansiyel var, sıralama yok.','bir kahve molası verip baştan dizelim.','renkler anlaşamamış.','iyi bir başlangıç, kötü bir sıralama.','sıralarsan bambaşka bir hesap olur.'],
+      ['bu grid değil, galeri klasörü.','her kare farklı bir hesaptan gelmiş gibi.','feed’in şu an “fark etmez” diyor.','burada herkes başrol oynamak istiyor.','renkler kavga ediyor, kazanan yok.','kamera rulosu modunda.','derin nefes. bunu toparlarız.','bu hesabın bir sanat yönetmenine ihtiyacı var.','takipçi gelir ama kalmaz.','iyi haber: düzeltmesi 5 dakika.']
+    ],
+    en: [
+      ['people are saving this grid to their moodboards.','nobody leaves this profile without following.','this feed clearly has an art director.','every post knows its place.','this isn’t a grid, it’s a gallery.','the kind of grid that slows the scroll.','one word: consistent. two words: very consistent.','this grid gets screenshotted.','the colours speak the same language.','someone is sending this grid to a friend right now.'],
+      ['fix one post and it’s museum level.','almost perfect, one post is shouting.','great, but one post came to the wrong party.','the rhythm holds, it trips once.','it gets follows. swap one, it gets saves.','calm and strong. move one up and done.','good eye, missing the last touch.','from here it’s all details.','clean profile, one post has its own plans.','almost aesthetic-account level.'],
+      ['good intentions, no plan.','nice posts that have never met.','great alone, crowded together.','this grid is a meeting where everyone talks at once.','the light goes left, then right. eyes get tired.','potential, no order.','coffee break, then we re-arrange.','the colours didn’t agree.','good start, bad order.','sort it and it’s a different account.'],
+      ['this isn’t a grid, it’s a camera roll.','every post looks like it’s from another account.','your feed is saying “whatever”.','everyone here wants the lead role.','the colours are fighting and nobody wins.','camera roll mode: on.','deep breath. we can fix this.','this account needs an art director.','followers will come, but won’t stay.','good news: it’s a 5-minute fix.']
+    ]
+  };
+  function lineFor(score, tiles){ const band = score >= 90 ? 0 : score >= 80 ? 1 : score >= 70 ? 2 : 3, pool = LINES[L()][band];
+    let h = score * 31; (tiles || []).slice(0, 9).forEach(t => { const str = String(t); for (let i = str.length - 1; i > Math.max(0, str.length - 400); i -= 37) h = (h * 33 + str.charCodeAt(i)) >>> 0; });
+    return pool[h % pool.length]; }
   async function card(o){ const W = 1080, H = 1920, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
-    const dark = o.vibe === 'night' || o.vibe === 'mono', bgc = dark ? '#111110' : '#f3efe8', ink = dark ? '#f3efe8' : '#151412', mute = dark ? '#a39e95' : '#6f6a62';
-    g.fillStyle = bgc; g.fillRect(0, 0, W, H);
-    const sans = '"Helvetica Neue", Helvetica, Arial, sans-serif', serif = '"Instrument Serif", Georgia, "Times New Roman", serif';
-    try { await document.fonts.load('400 40px "Instrument Serif"'); await document.fonts.load('italic 40px "Instrument Serif"'); } catch(_){}
-    g.fillStyle = mute; g.font = `500 30px ${sans}`; g.textAlign = 'left'; g.fillText(tx().card.top.toUpperCase().split('').join(' '), 90, 262);
-    g.textAlign = 'right'; g.fillText(o.date || '', W - 90, 262);
-    // score + vibe
-    g.textAlign = 'left'; g.fillStyle = ink; g.font = `500 260px ${sans}`; g.fillText(String(o.score), 78, 500);
-    const sw = g.measureText(String(o.score)).width; g.fillStyle = mute; g.font = `500 54px ${sans}`; g.fillText('/100', 78 + sw + 18, 500);
-    g.fillStyle = ink; g.font = `600 112px ${sans}`; if ("letterSpacing" in g) g.letterSpacing = "-3px"; g.fillText(o.vibeName, 84, 628); if ("letterSpacing" in g) g.letterSpacing = "0px";
-    g.fillStyle = mute; g.font = `400 38px ${sans}`; g.fillText(o.vibeLine, 90, 690);
-    // the grid: sized so roast and footer always fit below it
-    g.font = `400 40px ${sans}`;
-    const wrap = (s, maxW) => { const w = s.split(' '), lines = []; let cur = ''; for (const t of w){ const n = cur ? cur + ' ' + t : t; if (g.measureText(n).width > maxW && cur){ lines.push(cur); cur = t; } else cur = n; } if (cur) lines.push(cur); return lines; };
-    const rows0 = Math.min(3, Math.ceil(o.tiles.length / 3)), roast = (o.roast || []).slice(0, rows0 > 2 ? 1 : 2).map(l => { const w = wrap(l, W - 220); if (w.length > 2){ w.length = 2; w[1] = w[1].replace(/[\s,;:.]*\S*$/, '') + '…'; } return w; });
-    const roastH = roast.reduce((a, l) => a + l.length*52 + 22, 0);
-    const rows = Math.min(3, Math.ceil(o.tiles.length / 3)), gap = 6, ratio = o.ratio || 4/3, gy = 750;
-    const avail = (H - 440) - gy - 50 - roastH;
-    let cw = (W - 180 - 2*gap) / 3, ch = cw * ratio;
-    if (rows*(ch+gap) > avail){ ch = (avail - rows*gap) / rows; cw = ch / ratio; }
-    const gw = 3*cw + 2*gap, gx = (W - gw) / 2;
+    const th = THEMES[o.theme] || THEMES.pink, cx = W / 2, sans = '"Helvetica Neue", Helvetica, Arial, sans-serif';
+    const bgG = g.createLinearGradient(0, 0, 0, H); bgG.addColorStop(0, th.bg2); bgG.addColorStop(1, th.bg); g.fillStyle = bgG; g.fillRect(0, 0, W, H);
+    const ls = v => { if ('letterSpacing' in g) g.letterSpacing = v; };
+    // top: brand lockup + date (the only pintertag on the card)
+    const logo = await loadImg('assets/logo.png'); g.font = `700 40px ${sans}`; ls('-1.2px'); const ww = g.measureText('pintertag').width; ls('0px');
+    const lx = cx - (34 + 10 + ww) / 2, by = 250;
+    if (logo){ g.save(); if (o.theme === 'black') g.filter = 'invert(1)'; g.drawImage(logo, lx, by - 34, 34, 38); g.restore(); }
+    g.textAlign = 'left'; g.fillStyle = th.ink; ls('-1.2px'); g.fillText('pintertag', lx + 44, by); ls('0px');
+    // score ring + vibe side by side, centred as one group, above the grid (nothing covers a photo)
+    const R = 92, dark = o.theme === 'black', frac = Math.max(0, Math.min(1, o.score / 100));
+    const said = o.line || lineFor(o.score, o.tiles), maxTW = W - 120 - 2*R - 36; let fs = 50, rows2 = [];
+    for (; fs >= 36; fs -= 2){ g.font = `700 ${fs}px ${sans}`; ls('-1px'); const words = said.split(' '); rows2 = []; let cur = '';
+      for (const w of words){ const t = cur ? cur + ' ' + w : w; if (g.measureText(t).width > maxTW && cur){ rows2.push(cur); cur = w; } else cur = t; } if (cur) rows2.push(cur); if (rows2.length <= 2) break; }
+    const tw2 = Math.max(...rows2.map(r => g.measureText(r).width)); ls('0px');
+    const grpW = 2*R + 36 + tw2, gx = cx - grpW/2, ry = 400;
+    g.fillStyle = dark ? '#F3EFE8' : '#151412'; g.beginPath(); g.arc(gx + R, ry, R, 0, 7); g.fill();
+    g.lineCap = 'round'; g.lineWidth = 11; g.strokeStyle = dark ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.14)'; g.beginPath(); g.arc(gx + R, ry, R - 15, 0, 7); g.stroke();
+    g.strokeStyle = th.dot; g.beginPath(); g.arc(gx + R, ry, R - 15, -Math.PI/2, -Math.PI/2 + frac * Math.PI * 2); g.stroke();
+    g.textAlign = 'center'; g.fillStyle = dark ? '#151412' : '#ffffff'; g.font = `700 78px ${sans}`; ls('-3px'); g.fillText(String(o.score), gx + R, ry + 20); ls('0px');
+    g.font = `600 20px ${sans}`; g.globalAlpha = .6; g.fillText('/100', gx + R, ry + 50); g.globalAlpha = 1;
+    g.textAlign = 'left'; g.fillStyle = th.ink; g.font = `700 ${fs}px ${sans}`; ls('-1px'); const lh = fs * 1.15, y0 = ry - (rows2.length - 1) * lh / 2 + fs * .35;
+    rows2.forEach((r, i) => g.fillText(r, gx + 2*R + 36, y0 + i * lh)); ls('0px');
+    g.textAlign = 'center';
+    // the posts, as big as the space allows
+    const n = Math.min(9, o.tiles.length), rows = Math.max(1, Math.ceil(n / 3)), ratio = o.ratio || 4/3, gap = 5, pad = 14, top = 540, maxH = 1700 - top;
+    let cw = (W - 120 - 2*pad - 2*gap) / 3, ch = cw * ratio; if (rows*ch + (rows-1)*gap + 2*pad > maxH){ ch = (maxH - 2*pad - (rows-1)*gap) / rows; cw = ch / ratio; }
+    const gw = 3*cw + 2*gap, gh = rows*ch + (rows - 1)*gap, sx = cx - gw/2 - pad, sy = top;
+    const rr = (x, y, w, h, r) => { g.beginPath(); g.moveTo(x+r, y); g.arcTo(x+w, y, x+w, y+h, r); g.arcTo(x+w, y+h, x, y+h, r); g.arcTo(x, y+h, x, y, r); g.arcTo(x, y, x+w, y, r); g.closePath(); };
+    g.save(); g.shadowColor = 'rgba(0,0,0,.16)'; g.shadowBlur = 44; g.shadowOffsetY = 18; g.fillStyle = th.sheet; rr(sx, sy, gw + 2*pad, gh + 2*pad, 28); g.fill(); g.restore();
     const ims = await Promise.all(o.tiles.slice(0, rows*3).map(loadImg));
-    ims.forEach((im, i) => { if (!im) return; const x = gx + (i%3)*(cw+gap), y = gy + Math.floor(i/3)*(ch+gap); const r = Math.max(cw/im.width, ch/im.height), w = cw/r, h = ch/r;
-      g.drawImage(im, (im.width-w)/2, (im.height-h)/2, w, h, x, y, cw, ch);
-      if (o.flags && o.flags[i]){ g.strokeStyle = '#e0412f'; g.lineWidth = 8; g.strokeRect(x+4, y+4, cw-8, ch-8); g.fillStyle = '#e0412f'; g.beginPath(); g.arc(x + cw - 30, y + 30, 14, 0, 7); g.fill(); } });
-    let y = gy + rows*(ch+gap) + 70;
-    // roast
-    g.font = `400 40px ${sans}`;
-    for (const lines of roast){ g.fillStyle = '#e0412f'; g.fillRect(90, y - 22, 10, 10); g.fillStyle = ink; for (const l of lines){ g.fillText(l, 130, y); y += 52; } y += 22; }
-    // footer
-    // brand lockup: logo + wordmark + handle, kept above Instagram's reply bar so viewers see where it came from
-    g.fillStyle = ink; g.font = `500 42px ${sans}`; g.fillText(tx().card.foot, 90, H - 392);
-    const logo = await loadImg('assets/logo.png'), by = H - 312;
-    if (logo){ g.save(); if (dark) g.filter = 'invert(1)'; g.drawImage(logo, 90, by - 40, 40, 45); g.restore(); }
-    g.fillStyle = ink; g.font = `700 46px ${sans}`; if ("letterSpacing" in g) g.letterSpacing = "-1.5px"; g.fillText('pintertag', 138, by); if ("letterSpacing" in g) g.letterSpacing = "0px";
-    g.fillStyle = mute; g.font = `500 32px ${sans}`; g.textAlign = 'right'; g.fillText('@pintertag', W - 90, by - 4); g.textAlign = 'left';
+    ims.forEach((im, i) => { if (!im) return; const x = sx + pad + (i%3)*(cw+gap), y = sy + pad + Math.floor(i/3)*(ch+gap); const r = Math.max(cw/im.width, ch/im.height), w = cw/r, h = ch/r;
+      g.drawImage(im, (im.width-w)/2, (im.height-h)/2, w, h, x, y, cw, ch); });
+    // bottom question
+    g.fillStyle = th.ink; g.font = `600 44px ${sans}`; ls('-1px'); g.fillText(tx().card.foot, cx, Math.min(1790, sy + gh + 2*pad + 84)); ls('0px');
     return new Promise(res => c.toBlob(b => res(b), 'image/png'));
   }
   const challenge = (score, vibeName) => tx().challenge.replace('{s}', score).replace('{v}', vibeName);
   const vibeText = k => tx().vibes[k] || tx().vibes.chaos;
-  return { findGrid, readShots, vibeOf, roastOf, verdict, card, challenge, vibeText, loadImg };
+  return { lineFor, findGrid, readShots, vibeOf, roastOf, verdict, card, challenge, vibeText, loadImg };
 })();

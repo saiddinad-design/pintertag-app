@@ -559,3 +559,18 @@ body.dark .pt-booth-stage>*{background:#222}
 .pt-booth-stage>.pt-booth-slot.is-strip i img{width:100%;height:100%;object-fit:cover}
 .pt-booth-stage>.pt-booth-slot:not(.is-strip){border-radius:2px}
 .pt-booth-stage>.pt-booth-slot{border:0!important;outline:0!important}
+/* grid check result: the card is the preview */
+.m-gc{display:flex;flex-direction:column;align-items:stretch;gap:12px}
+.m-gc-card{display:flex;justify-content:center}
+.m-gc-card img{width:min(62%,250px);aspect-ratio:9/16;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.18);background:#eee;transition:opacity .15s;object-fit:cover}
+.m-gc-sws{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.m-gc-sw{display:flex;align-items:center;justify-content:center;gap:8px;min-height:40px;border:1px solid var(--line);border-radius:99px;background:none;color:inherit;font:600 13px Helvetica,Arial,sans-serif;cursor:pointer}
+.m-gc-sw i{width:16px;height:16px;border-radius:50%;border:1px solid rgba(0,0,0,.15)}
+.m-gc-sw.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.m-gc-meta{text-align:center;font-size:13px;color:var(--muted);margin:0}
+.m-gc-more{border:1px dashed var(--line);border-radius:12px;background:none;color:inherit;padding:10px 12px;font:500 13px Helvetica,Arial,sans-serif;cursor:pointer}
+.m-gc-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.m-gc-pair>*{width:100%;min-height:48px;justify-content:center}
+.m-gc-keep{align-self:center}
+.m-gc-foot{text-align:center;margin:0}
+.m-gc-card img{width:min(78%,320px)}
