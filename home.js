@@ -76,4 +76,6 @@
   document.addEventListener('click', e => { const b = e.target.closest('[data-action="pt-tile-need"]'); if (!b) return;
     toast(T('Bunun için önce grid’ine fotoğraf ekle.','Add photos to your grid first.')); const u = document.getElementById('upload'); if (u) u.click(); });
   window.PTHome = { arrange };
+  /* the first screen is drawn before the later modules (profile, plan, tools) load: draw it once more so a new user sees all of it */
+  try { render(); } catch(_) {}
 })();

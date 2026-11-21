@@ -135,7 +135,7 @@ const GC = (() => {
     flags.map((f,i) => f ? {i, f} : null).filter(Boolean).sort((a,b) => b.f.d - a.f.d).slice(0,2).forEach(({i,f}) => { const k = key[f.key]; if (k) out.push(T[k].replace('{i}', p(i))); });
     const bw = ms.map(m => m && m.sat < .07); for (let i = 0; i < ms.length && out.length < 3; i++){ const nb = []; if (i%3 < 2) nb.push(i+1); if (i+3 < ms.length) nb.push(i+3); if (bw[i] && nb.some(j => bw[j])){ out.push(T.bwpair); break; } }
     const acc = ms.filter(m => m && m.vivid > .18).length; if (acc >= 5 && out.length < 3) out.push(T.accent);
-    const sg = window.__PT.scoreGrid(ms); if (sg && sg.lsd > 20 && out.length < 3) out.push(T.rhythm);
+    const sg = (window.PTScore || window.__PT).scoreGrid(ms); if (sg && sg.lsd > 20 && out.length < 3) out.push(T.rhythm);
     if (!out.length) out.push(score >= 90 ? T.great : T.good);
     return out.slice(0, 3); }
   const verdict = s => tx().verdict[s >= 90 ? 0 : s >= 80 ? 1 : s >= 70 ? 2 : 3];
