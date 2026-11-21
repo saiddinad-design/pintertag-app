@@ -10,7 +10,16 @@ window.PT_STORE_URL = window.PT_STORE_URL || '';
   const readFile = f => new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => res(null); r.readAsDataURL(f); });
   async function share(blob, name, text){ const file = new File([blob], name, { type: blob.type });
     try { if (navigator.canShare && navigator.canShare({ files: [file] })){ await navigator.share({ files: [file], text }); return 'shared'; } } catch(e){ if (e && e.name === 'AbortError') return 'cancel'; }
+    /* phones without a share sheet (in-app browsers, http): show the card big to long-press and save */
+    if (matchMedia('(pointer:coarse)').matches){ sheet(`<img src="${URL.createObjectURL(blob)}" alt="">`, T('Karta basılı tut, “Fotoğraflar’a Kaydet”e dokun. Sonra story’de paylaş.','Press and hold the card, then tap “Save to Photos”. Share it to your story from there.')); return 'done'; }
     const r = await PTSave.save(name, blob); PTSave.say(r, T('Kart','Card')); return r === 'declined' ? 'cancel' : 'done'; }
+  function sheet(inner, note){ let s = document.getElementById('pt-sheet');
+    /* its own <dialog>, so it opens in the top layer above the grid-check modal */
+    if (!s){ s = document.createElement('dialog'); s.id = 'pt-sheet'; s.className = 'pt-sheet';
+      s.innerHTML = '<div class="pt-sheet-body"></div><p class="pt-sheet-note"></p><button class="pt-sheet-x" type="button"></button>';
+      s.addEventListener('click', e => { if (e.target === s || e.target.closest('.pt-sheet-x')) s.close(); }); document.body.appendChild(s); }
+    s.querySelector('.pt-sheet-body').innerHTML = inner; s.querySelector('.pt-sheet-note').textContent = note; s.querySelector('.pt-sheet-x').textContent = T('Kapat','Close');
+    if (!s.open){ try { s.showModal(); } catch(_) { s.setAttribute('open', ''); } } }
 
   let lastSrcs = [], adding = false;
   async function run(files){
@@ -67,8 +76,9 @@ window.PT_STORE_URL = window.PT_STORE_URL || '';
     if (a === 'm-gc-theme' && last){ state.gcTheme = b.dataset.theme; save(); document.querySelectorAll('.m-gc-sw').forEach(x => { const on = x.dataset.theme === state.gcTheme; x.classList.toggle('on', on); x.setAttribute('aria-pressed', on); });
       const img = document.getElementById('m-gc-img'); if (img) img.style.opacity = '.5'; const u = await makeCard(); if (img && u){ img.src = u; img.style.opacity = ''; } }
     if (a === 'm-gc-more'){ adding = true; inp.click(); }
-    if (a === 'm-gc-dare' && last){ const text = GC.challenge(last.score, last.vName) + (window.PT_STORE_URL ? ' ' + window.PT_STORE_URL : '');
+    if (a === 'm-gc-dare' && last){ const text = GC.challenge(last.score, last.vName).replace(/\s*pintertag\s*$/i, '') + ' ' + (window.PT_STORE_URL || 'https://pintertag.com');
       try { if (navigator.share){ await navigator.share({ text }); return; } } catch(err){ if (err && err.name === 'AbortError') return; }
-      try { await navigator.clipboard.writeText(text); toast(T('Mesaj kopyalandı. Arkadaşına yapıştır.','Message copied. Paste it to a friend.')); } catch(_){ toast(text); } } });
+      let ok = false; try { await navigator.clipboard.writeText(text); ok = true; } catch(_){}
+      sheet(`<p class="pt-sheet-text">${esc(text)}</p>`, ok ? T('Kopyalandı. Arkadaşına yapıştır.','Copied. Paste it to a friend.') : T('Bunu kopyala, arkadaşına gönder.','Copy this and send it to a friend.')); } });
   render();
 })();
