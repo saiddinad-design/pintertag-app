@@ -51,17 +51,41 @@ const GC = (() => {
         const fits = t => [0, -1, 1, -2, 2, -3, 3].map(d => t + d).find(tt => check(tt, hh));
         for (let t = rows[0] - step; t >= 0; t -= step){ const f = fits(t); if (f === undefined) break; rows.unshift(f); t = f; }
         for (let t = rows[rows.length - 1] + step; t + hh <= H; t += step){ const f = fits(t); if (f === undefined) break; rows.push(f); t = f; } }
-      for (const a of rows) for (const [x0, x1] of colsX) tiles.push({ x:x0, y:a, w:x1 - x0, h:hh }); }
+      /* fewer than 3 full rows: the screenshot cut a row at the top (under the profile header) or the bottom (under the tab bar).
+         take the cut row if at least half of it shows; the top one first, those are the newest posts */
+      const spans = rows.map(a => [a, hh]);
+      if (rows.length && rows.length < 3){ const seam = Math.max(2, Math.round(tw * .006));
+        const part = (a, h) => { if (h < hh * .5) return false; let photo = 0, n = 0; for (let y = a + k; y < a + h - k; y += 2){ n++; if (rowS[y] > 30 && seamAt(s1[2], y) && seamAt(s2[2], y)) photo++; } return n > 8 && photo / n > .6; };
+        const topEnd = rows[0] - seam; let tStart = 0; for (const [ga, gb] of gaps) if (gb < topEnd - hh * .5 && gb > tStart) tStart = gb;
+        if (part(tStart, topEnd - tStart)) spans.unshift([tStart, topEnd - tStart]);
+        if (spans.length < 3){ const bStart = rows[rows.length - 1] + hh + seam; let bEnd = Math.min(H, bStart + hh); for (const [ga] of gaps) if (ga > bStart + hh * .5 && ga < bEnd) bEnd = ga;
+          if (part(bStart, bEnd - bStart)) spans.push([bStart, bEnd - bStart]); } }
+      for (const [a, h] of spans.slice(0, 3)) for (const [x0, x1] of colsX) tiles.push({ x:x0, y:a, w:x1 - x0, h }); }
     if (tiles.length < 3) return null;
     const out = tiles.map(t => { const q = Math.min(1, 720 / t.w), cc = document.createElement('canvas'); cc.width = Math.round(t.w * q); cc.height = Math.round(t.h * q);
       cc.getContext('2d').drawImage(c, t.x, t.y, t.w, t.h, 0, 0, cc.width, cc.height); return cc.toDataURL('image/jpeg', .9); });
     return { tiles: out, ratio, theme: bg ? 'light' : 'dark' };
   }}
+  /* any image gets a score: when no Instagram grid is found (a moodboard, a collage, a brand board, even one photo),
+     trim plain borders and cut it into 3 columns, rows sized by the tile shape that fits best */
+  function cutGrid(im){
+    const W = im.naturalWidth || im.width, H = im.naturalHeight || im.height; if (W < 90 || H < 90) return null;
+    const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(im, 0, 0);
+    const d = g.getImageData(0, 0, W, H).data, px = (x, y) => (y * W + x) * 4;
+    const ref = [d[0], d[1], d[2]], plain = (x0, y0, x1, y1) => { let n = 0, off = 0; for (let y = y0; y < y1; y += 3) for (let x = x0; x < x1; x += 3){ const i = px(x, y); n++; if (Math.abs(d[i]-ref[0]) + Math.abs(d[i+1]-ref[1]) + Math.abs(d[i+2]-ref[2]) > 40) off++; } return off / Math.max(1, n) < .02; };
+    let t = 0, b = H, l = 0, r = W; while (t < H * .3 && plain(0, t, W, t + 4)) t += 4; while (b > H * .7 && plain(0, b - 4, W, b)) b -= 4; while (l < W * .3 && plain(l, t, l + 4, b)) l += 4; while (r > W * .7 && plain(r - 4, t, r, b)) r -= 4;
+    const w = r - l, h = b - t, cw = w / 3; let best = null;
+    for (const ratio of [4/3, 5/4, 1]){ const rows = h / (cw * ratio), k = Math.max(1, Math.round(rows)), err = Math.abs(rows - k) / k; if (!best || err < best.err) best = { ratio, k, err }; }
+    const rows = Math.min(3, best.k), ch = h / best.k, tiles = [];
+    for (let i = 0; i < rows; i++) for (let j = 0; j < 3; j++){ const x = l + j * cw, y = t + i * ch, q = Math.min(1, 720 / cw), cc = document.createElement('canvas'); cc.width = Math.round(cw * q); cc.height = Math.round(ch * q);
+      cc.getContext('2d').drawImage(c, x, y, cw, ch, 0, 0, cc.width, cc.height); tiles.push(cc.toDataURL('image/jpeg', .9)); }
+    return { tiles, ratio: best.ratio, theme: 'light', cut: true };
+  }
   /* several screenshots: keep the order, drop posts already seen (a scrolled screenshot repeats rows) */
   const sig = im => { const c = document.createElement('canvas'); c.width = 8; c.height = 8; const g = c.getContext('2d'); g.drawImage(im, 0, 0, 8, 8); return [...g.getImageData(0,0,8,8).data].filter((_,i) => i%4 !== 3); };
   async function readShots(srcs){
     const all = [], sigs = []; let ratio = null, found = 0;
-    for (const s of srcs){ const im = await loadImg(s); if (!im) continue; const r = findGrid(im); if (!r) continue; found++; ratio = ratio || r.ratio;
+    for (const s of srcs){ const im = await loadImg(s); if (!im) continue; const r = findGrid(im) || cutGrid(im); if (!r) continue; found++; ratio = ratio || r.ratio;
       for (const t of r.tiles){ const ti = await loadImg(t); const sg = sig(ti); if (sigs.some(o => o.reduce((a,v,i) => a + Math.abs(v - sg[i]), 0) / sg.length < 6)) continue; sigs.push(sg); all.push(t); } }
     return { tiles: all, ratio, found, total: srcs.length };
   }
