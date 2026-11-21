@@ -27,13 +27,16 @@
   const sdv = a => { const m = a.reduce((t,v)=>t+v,0)/a.length; return Math.sqrt(a.reduce((t,v)=>t+(v-m)**2,0)/a.length); };
   const hd = (x,y) => x.hist.reduce((t,v,k)=>t+Math.abs(v-y.hist[k]),0);
   function scoreGrid(ms){ const c = ms.filter(m => m && m.v === 2); if (c.length < 2) return null;
-    let pairs = 0, hsum = 0; for (let i=0;i<c.length;i++) for (let j=i+1;j<c.length;j++){ hsum += hd(c[i],c[j]); pairs++; }
-    const f = [sdv(c.map(m=>m.L)), sdv(c.map(m=>m.Lp95)), hsum/pairs, sdv(c.map(m=>m.a))];
-    const logit = f.reduce((t,v,k)=>t + (v-MODEL.mu[k])/MODEL.sd[k]*MODEL.w[k], MODEL.b);
+    /* v2 (nov): curated grids keep a restrained palette. neutrals (black, white, grey, beige) do not count as colour, one accent hue is fine;
+       what drops the score is many unrelated hues/filters and big jumps in light. strong black/white contrast is only lightly penalised. */
+    const P = [0,0,0,0,0,0,0,0]; let tot = 1e-6; c.forEach(m => m.hist.forEach((v,k) => { P[k] += v*m.sat; tot += v*m.sat; }));
+    let conc = 0; for (let k=0;k<8;k++) conc = Math.max(conc, P[k] + P[(k+1)%8]); conc /= tot;
+    const msat = c.reduce((t,m)=>t+m.sat,0)/c.length, D = (1-conc)*msat, Lsd = sdv(c.map(m=>m.L)), P95 = sdv(c.map(m=>m.Lp95)), x = Math.max(0, Lsd-12);
+    const raw = 97 - (1.6*x + .08*x*x) - Math.max(0, D-.03)*100 - .4*Math.max(0, P95-9), logit = (raw-78)/13, f = [Lsd];
     const near = (x,y) => hd(x,y) + Math.abs(x.L-y.L)/25; let nb = 0, nn = 0, all = 0, an = 0;
     for (let i=0;i<c.length;i++){ if (i%3<2 && c[i+1]){ nb += near(c[i],c[i+1]); nn++; } if (c[i+3]){ nb += near(c[i],c[i+3]); nn++; } for (let j=i+1;j<c.length;j++){ all += near(c[i],c[j]); an++; } }
     const ratio = nn && all ? (nb/nn)/(all/an) : 1, bonus = Math.max(-3, Math.min(3, (ratio-1)*10));
-    const total = Math.round(Math.max(45, Math.min(98, 78 + 13*logit + bonus)));
+    const total = Math.round(Math.max(45, Math.min(98, raw + bonus)));
     return { total, tone: 1/(1+Math.exp(-logit)), light: Math.max(0, 1 - f[0]/30), rhythm: Math.max(0, Math.min(1, ratio/1.3)), lsd: f[0] }; }
   const KEYS = [['warm',.09,'warm','cool'],['lum',.2,'bright','dark'],['sat',.2,'sat','flat']];
   const med = a => { const s=[...a].sort((x,y)=>x-y), h=s.length>>1; return s.length%2 ? s[h] : (s[h-1]+s[h])/2; };

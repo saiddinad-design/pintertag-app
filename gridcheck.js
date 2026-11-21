@@ -54,10 +54,11 @@ const GC = (() => {
       /* fewer than 3 full rows: the screenshot cut a row at the top (under the profile header) or the bottom (under the tab bar).
          take the cut row if at least half of it shows; the top one first, those are the newest posts */
       const spans = rows.map(a => [a, hh]);
-      if (rows.length && rows.length < 3){ const seam = Math.max(2, Math.round(tw * .006));
+      if (rows.length){ const seam = Math.max(2, Math.round(tw * .006));
         const part = (a, h) => { if (h < hh * .5) return false; let photo = 0, n = 0; for (let y = a + k; y < a + h - k; y += 2){ n++; if (rowS[y] > 30 && seamAt(s1[2], y) && seamAt(s2[2], y)) photo++; } return n > 8 && photo / n > .6; };
+        /* the newest row is usually the one cut by the screen edge or the header: keep it when most of it shows (any number of full rows below) */
         const topEnd = rows[0] - seam; let tStart = 0; for (const [ga, gb] of gaps) if (gb < topEnd - hh * .5 && gb > tStart) tStart = gb;
-        if (part(tStart, topEnd - tStart)) spans.unshift([tStart, topEnd - tStart]);
+        if (topEnd - tStart >= hh * (rows.length < 3 ? .5 : .7) && part(tStart, topEnd - tStart)) spans.unshift([tStart, topEnd - tStart]);
         if (spans.length < 3){ const bStart = rows[rows.length - 1] + hh + seam; let bEnd = Math.min(H, bStart + hh); for (const [ga] of gaps) if (ga > bStart + hh * .5 && ga < bEnd) bEnd = ga;
           if (part(bStart, bEnd - bStart)) spans.push([bStart, bEnd - bStart]); } }
       for (const [a, h] of spans.slice(0, 3)) for (const [x0, x1] of colsX) tiles.push({ x:x0, y:a, w:x1 - x0, h }); }
