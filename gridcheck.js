@@ -144,17 +144,19 @@ const GC = (() => {
     const bgG = g.createLinearGradient(0, 0, 0, H); bgG.addColorStop(0, th.bg2); bgG.addColorStop(1, th.bg); g.fillStyle = bgG; g.fillRect(0, 0, W, H);
     const ls = v => { if ('letterSpacing' in g) g.letterSpacing = v; };
     // top: brand lockup + date (the only pintertag on the card)
-    const logo = await loadImg('assets/logo.png'); g.font = `700 40px ${sans}`; ls('-1.2px'); const ww = g.measureText('pintertag').width; ls('0px');
-    const lx = cx - (34 + 10 + ww) / 2, by = 250;
-    if (logo){ g.save(); if (o.theme === 'black') g.filter = 'invert(1)'; g.drawImage(logo, lx, by - 34, 34, 38); g.restore(); }
-    g.textAlign = 'left'; g.fillStyle = th.ink; ls('-1.2px'); g.fillText('pintertag', lx + 44, by); ls('0px');
+    const logo = await loadImg('assets/logo.png'); g.font = `700 54px ${sans}`; ls('-1.6px'); const ww = g.measureText('pintertag').width; ls('0px');
+    const lx = cx - (38 + 14 + ww) / 2, by = 300;
+    /* tint the mark in code (Safari ignores canvas filters), same colour as the wordmark, centred on its x-height */
+    if (logo){ const t = document.createElement('canvas'); t.width = 68; t.height = 76; const tg = t.getContext('2d'); tg.drawImage(logo, 0, 0, 68, 76); tg.globalCompositeOperation = 'source-in'; tg.fillStyle = th.ink; tg.fillRect(0, 0, 68, 76);
+      g.drawImage(t, lx, by - 41, 38, 43); }
+    g.textAlign = 'left'; g.fillStyle = th.ink; ls('-1.6px'); g.fillText('pintertag', lx + 52, by); ls('0px');
     // score ring + vibe side by side, centred as one group, above the grid (nothing covers a photo)
     const R = 92, dark = o.theme === 'black', frac = Math.max(0, Math.min(1, o.score / 100));
     const said = o.line || lineFor(o.score, o.tiles), maxTW = W - 120 - 2*R - 36; let fs = 50, rows2 = [];
     for (; fs >= 36; fs -= 2){ g.font = `700 ${fs}px ${sans}`; ls('-1px'); const words = said.split(' '); rows2 = []; let cur = '';
       for (const w of words){ const t = cur ? cur + ' ' + w : w; if (g.measureText(t).width > maxTW && cur){ rows2.push(cur); cur = w; } else cur = t; } if (cur) rows2.push(cur); if (rows2.length <= 2) break; }
     const tw2 = Math.max(...rows2.map(r => g.measureText(r).width)); ls('0px');
-    const grpW = 2*R + 36 + tw2, gx = cx - grpW/2, ry = 400;
+    const grpW = 2*R + 36 + tw2, gx = cx - grpW/2, ry = 450;
     g.fillStyle = dark ? '#F3EFE8' : '#151412'; g.beginPath(); g.arc(gx + R, ry, R, 0, 7); g.fill();
     g.lineCap = 'round'; g.lineWidth = 11; g.strokeStyle = dark ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.14)'; g.beginPath(); g.arc(gx + R, ry, R - 15, 0, 7); g.stroke();
     g.strokeStyle = o.score >= 85 ? '#22B573' : o.score >= 70 ? '#F5A524' : '#F0475B'; g.beginPath(); g.arc(gx + R, ry, R - 15, -Math.PI/2, -Math.PI/2 + frac * Math.PI * 2); g.stroke();
@@ -164,7 +166,7 @@ const GC = (() => {
     rows2.forEach((r, i) => g.fillText(r, gx + 2*R + 36, y0 + i * lh)); ls('0px');
     g.textAlign = 'center';
     // the posts, as big as the space allows
-    const n = Math.min(9, o.tiles.length), rows = Math.max(1, Math.ceil(n / 3)), ratio = o.ratio || 4/3, gap = 5, pad = 14, top = 540, maxH = 1700 - top;
+    const n = Math.min(9, o.tiles.length), rows = Math.max(1, Math.ceil(n / 3)), ratio = o.ratio || 4/3, gap = 5, pad = 14, top = 590, maxH = 1700 - top;
     let cw = (W - 120 - 2*pad - 2*gap) / 3, ch = cw * ratio; if (rows*ch + (rows-1)*gap + 2*pad > maxH){ ch = (maxH - 2*pad - (rows-1)*gap) / rows; cw = ch / ratio; }
     const gw = 3*cw + 2*gap, gh = rows*ch + (rows - 1)*gap, sx = cx - gw/2 - pad, sy = top;
     const rr = (x, y, w, h, r) => { g.beginPath(); g.moveTo(x+r, y); g.arcTo(x+w, y, x+w, y+h, r); g.arcTo(x+w, y+h, x, y+h, r); g.arcTo(x, y+h, x, y, r); g.arcTo(x, y, x+w, y, r); g.closePath(); };
