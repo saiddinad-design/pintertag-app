@@ -157,7 +157,7 @@ const GC = (() => {
     const grpW = 2*R + 36 + tw2, gx = cx - grpW/2, ry = 400;
     g.fillStyle = dark ? '#F3EFE8' : '#151412'; g.beginPath(); g.arc(gx + R, ry, R, 0, 7); g.fill();
     g.lineCap = 'round'; g.lineWidth = 11; g.strokeStyle = dark ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.14)'; g.beginPath(); g.arc(gx + R, ry, R - 15, 0, 7); g.stroke();
-    g.strokeStyle = th.dot; g.beginPath(); g.arc(gx + R, ry, R - 15, -Math.PI/2, -Math.PI/2 + frac * Math.PI * 2); g.stroke();
+    g.strokeStyle = o.score >= 85 ? '#22B573' : o.score >= 70 ? '#F5A524' : '#F0475B'; g.beginPath(); g.arc(gx + R, ry, R - 15, -Math.PI/2, -Math.PI/2 + frac * Math.PI * 2); g.stroke();
     g.textAlign = 'center'; g.fillStyle = dark ? '#151412' : '#ffffff'; g.font = `700 78px ${sans}`; ls('-3px'); g.fillText(String(o.score), gx + R, ry + 20); ls('0px');
     g.font = `600 20px ${sans}`; g.globalAlpha = .6; g.fillText('/100', gx + R, ry + 50); g.globalAlpha = 1;
     g.textAlign = 'left'; g.fillStyle = th.ink; g.font = `700 ${fs}px ${sans}`; ls('-1px'); const lh = fs * 1.15, y0 = ry - (rows2.length - 1) * lh / 2 + fs * .35;
