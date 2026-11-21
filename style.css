@@ -483,3 +483,79 @@ body.dark .pt-ig-empty{color:#999}
 @media (hover:hover) and (pointer:fine) and (min-width:700px){.simple-mode .pt-plan-bar,.simple-mode .pt-plan-note,.simple-mode .pt-plan-fit{width:min(100%,calc((100dvh - 230px) * .75));margin-left:auto;margin-right:auto}}
 /* blurred example photo behind each empty plan frame: shows the mood, not the picture */
 .pt-slot{background-image:linear-gradient(color-mix(in srgb,var(--c) 66%,transparent),color-mix(in srgb,var(--c) 66%,transparent)),var(--bg,none);background-size:cover;background-position:center}
+/* home order (home.js) */
+.simple-app>.pt-ig{border-top:0;padding-top:4px;margin-top:0}
+.pt-ig-empty{display:none}
+.pt-ig-btn{margin-top:12px;min-height:34px}
+.pt-home-note{padding:10px 12px;margin:0 0 8px;border-radius:12px;font-size:13px}
+.pt-home-note .pill{min-height:34px;padding:6px 14px;font-size:13px}
+.simple-app>.pt-home-actions{margin:14px 0 6px}
+.simple-app>.pt-plan-fit{margin:4px 0 6px}
+.pt-home-tools{margin:22px 0 8px}
+.pt-home-tools h3{font-size:15px;font-weight:700;margin:0 0 10px;letter-spacing:-.2px}
+.pt-home-row{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:0 16px 4px;scrollbar-width:none}
+.pt-home-row::-webkit-scrollbar{display:none}
+.pt-home-row>*{flex:0 0 172px;scroll-snap-align:start;margin:0!important;min-height:112px;display:flex!important;flex-direction:column;align-items:flex-start!important;justify-content:space-between;gap:8px;text-align:left;padding:14px!important;border-radius:16px!important}
+.pt-home-row>* small,.pt-home-row>* span:not(:first-child){font-size:12px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pt-home-row>*>:last-child:not(:first-child){align-self:flex-end}
+@media (hover:hover) and (pointer:fine) and (min-width:700px){.simple-mode .pt-home-actions,.simple-mode .pt-home-note,.simple-mode .simple-hint{width:min(100%,calc((100dvh - 230px) * .75));margin-left:auto;margin-right:auto}}
+.pt-plan-switch input::after{background:var(--bg,#fff)}
+.pt-plan-switch input:not(:checked)::after{background:#fff}
+/* phone home: Instagram-like first screen (name + profile row + 9 frames) */
+@media not ((hover:hover) and (pointer:fine) and (min-width:700px)){
+  .simple-app>.simple-profile{margin:4px 0 10px}
+  .simple-app>.pt-ig{margin:0 0 10px;padding:0}
+  .simple-app>.pt-ig .pt-ig-user,.simple-app>.pt-ig .pt-ig-name,.simple-app>.pt-ig .pt-ig-bio,.simple-app>.pt-ig .pt-ig-link,.simple-app>.pt-ig .pt-ig-hls,.simple-app>.pt-ig .pt-ig-btn{display:none}
+  .simple-app>.pt-ig .pt-ig-head{gap:18px}
+  .simple-app>.pt-ig .pt-ig-avatar{flex-basis:56px;width:56px;height:56px}
+  .simple-app>.pt-ig .pt-ig-ph{font-size:24px}
+  .simple-app>.pt-ig .pt-ig-stats{cursor:pointer}
+  .simple-app>.pt-ig .pt-ig-stats b{font-size:16px}
+  .simple-app>.pt-ig .pt-ig-stats small{font-size:12px}
+  .simple-app>.pt-plan-bar{margin:0 0 8px}
+  .simple-app>.pt-plan-bar .pt-plan-seg button{min-height:32px;padding:5px 14px}
+  .simple-app>.pt-plan-bar .pt-plan-switch{min-height:36px}
+  .simple-app>.pt-plan-note{margin:10px 0 4px}
+}
+.simple-feed.is-tight .pt-slot small{display:none}
+.simple-feed.is-tight .pt-slot strong{font-size:13px}
+.pt-ig.is-full{border:0;margin:0;padding:0}
+/* tools as equal tiles */
+.pt-home-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pt-home-grid.is-odd>.pt-tile:last-child{grid-column:1 / -1;aspect-ratio:auto;min-height:118px}
+.pt-tile{position:relative;aspect-ratio:1/.82;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:4px;padding:14px;border:0;border-radius:18px;background:#f3f3f3;color:inherit;text-align:left;cursor:pointer;font:inherit}
+.pt-tile b{font-size:15px;font-weight:700;letter-spacing:-.25px;line-height:1.2}
+.pt-tile small{font-size:12px;line-height:1.35;color:var(--muted,#777);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pt-tile-ico{position:absolute;top:14px;left:14px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#111}
+.pt-tile-ico.is-dots{display:flex;gap:0;padding:0 6px;width:auto;border-radius:99px}
+.pt-tile-ico.is-dots i{width:14px;height:14px;border-radius:50%;margin-left:-4px;border:1.5px solid #fff}
+.pt-tile-ico.is-dots i:first-child{margin-left:0}
+.pt-tile-go{position:absolute;top:16px;right:16px;opacity:.55}
+.pt-tile:active{transform:scale(.98)}
+body.dark .pt-tile{background:#1f1f1f}
+body.dark .pt-tile-ico{background:#2c2c2c;color:#fff}
+body.dark .pt-tile-ico.is-dots i{border-color:#2c2c2c}
+.pt-home-tools{margin:26px 0 10px}
+.pt-tile b{display:block;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt-tile small{min-height:2.7em;width:100%}
+.pt-tile{justify-content:flex-end;gap:5px}
+/* booth start screen, symmetric */
+.pt-booth.is-sym{display:flex;flex-direction:column;gap:12px}
+.pt-booth.is-sym>.pt-booth-seg{width:100%;margin:0}
+.pt-booth.is-sym .pt-booth-seg.pt-booth-tone{grid-template-columns:repeat(4,1fr)}
+.pt-booth-stage{display:flex;justify-content:center;padding:6px 0 2px}
+.pt-booth-stage>*{border-style:solid!important;border-color:transparent!important;background:#f2f2f2;width:46%;max-width:200px;margin:0!important}
+.pt-booth-stage>.is-strip{width:auto;max-width:96px}
+.pt-booth.is-sym .pt-booth-lede{text-align:center;margin:0 auto;max-width:300px}
+.pt-booth.is-sym .pt-booth-count{text-align:center;margin:0}
+.pt-booth-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pt-booth-pair>*{width:100%;justify-content:center;display:flex;align-items:center;gap:8px;min-height:50px;margin:0;box-sizing:border-box}
+.pt-booth.is-sym .pt-booth-tag{display:flex;flex-direction:column;gap:6px;margin:0}
+.pt-booth.is-sym .text-button{align-self:center}
+.pt-booth-foot{text-align:center;margin:0}
+body.dark .pt-booth-stage>*{background:#222}
+.pt-booth-stage>.pt-booth-slot.is-strip{width:92px;max-width:92px;aspect-ratio:auto;height:auto;background:#111!important;padding:7px 7px 22px;display:flex;flex-direction:column;gap:6px;border-radius:2px}
+.pt-booth-stage>.pt-booth-slot.is-strip i{display:grid;place-items:center;aspect-ratio:4/3;background:#2a2a2a;color:#777;font:600 12px Helvetica,Arial,sans-serif;font-style:normal;overflow:hidden;width:100%;height:auto;border:0}
+.pt-booth-stage>.pt-booth-slot.is-strip i img{width:100%;height:100%;object-fit:cover}
+.pt-booth-stage>.pt-booth-slot:not(.is-strip){border-radius:2px}
+.pt-booth-stage>.pt-booth-slot{border:0!important;outline:0!important}

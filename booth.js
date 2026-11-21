@@ -45,21 +45,21 @@
   function open(){
     inputs(); if (shots.length > need()) resetShots();
     const m = mode(), many = m !== '1', left = need() - shots.length;
-    modal(T('kabin.','booth.'), `<div class="pt-booth">
+    modal(T('kabin.','booth.'), `<div class="pt-booth is-sym">
       <div class="pt-booth-seg is-3" role="group" aria-label="${T('Kabin türü','Booth format')}">${MODES.map(x => action('pt-booth-mode', modeName(x), x === m ? 'on' : '', `data-mode="${x}" aria-pressed="${x === m}"`)).join('')}</div>
-      <div class="pt-booth-row"><span class="small muted">${T('Renk','Colour')}</span>${toneSeg('pt-booth-tone')}</div>
-      <p class="pt-booth-lede">${many ? T(`Kamera açılır, ${m} kareyi 3-2-1 sayarak arka arkaya çeker. Sonunda bir kabin şeridin olur.`, `The camera opens and takes ${m} frames in a row with a 3-2-1 countdown. You get a booth strip.`)
-        : T('Telefonunla çek, pintertag baskını al: seçtiğin renkte, altında pintertag şeridi.','Shoot it on your phone and get a pintertag print in the colour you pick, with the pintertag strip below.')}</p>
-      <div class="pt-booth-start">${slotArt(m)}
-        <div class="pt-booth-go">
-          ${shots.length && many ? `<p class="pt-booth-count"><b>${shots.length}/${need()}</b> ${T('kare hazır','frames ready')}</p>` : ''}
-          ${action('pt-booth-live', cam + '<span>' + (shots.length && many ? T(`Kalan ${left} kareyi çek`, `Shoot the other ${left}`) : many ? T('Kabini başlat','Start the booth') : T('Kamerayı aç','Open camera')) + '</span>', 'pill solid')}
-          <label class="pill" for="pt-booth-lib">${many ? T(`Galeriden ${left} fotoğraf seç`, `Pick ${left} from library`) : T('Galeriden seç','Choose from library')}</label>
-          ${shots.length ? action('pt-booth-reset', T('Baştan başla','Start over'), 'text-button') : ''}
-          <label class="pt-booth-tag"><span class="small muted">${T('Şeritte yazsın (isteğe bağlı)','On the strip (optional)')}</span>
-            <input id="pt-booth-tag" class="field" maxlength="24" placeholder="${T('örn. cihangir','e.g. cihangir')}" value="${esc(tag())}" autocomplete="off" autocapitalize="none"></label>
-        </div></div>
-      <p class="small muted">${T('Fotoğrafların sadece telefonunda işlenir, bize gönderilmez. Story’nde @pintertag’i etiketleyebilirsin.','Your photos are processed only on your phone and never sent to us. Tag @pintertag in your story.')}</p></div>`);
+      ${toneSeg('pt-booth-tone')}
+      <div class="pt-booth-stage">${slotArt(m)}</div>
+      <p class="pt-booth-lede">${many ? T(`${m} kare, 3-2-1 sayarak arka arkaya. Sonunda kabin şeridin hazır.`, `${m} frames in a row, 3-2-1. Then your strip is ready.`)
+        : T('Telefonunla çek, altında pintertag şeridiyle baskını al.','Shoot it on your phone, get your print with the pintertag strip.')}</p>
+      ${shots.length && many ? `<p class="pt-booth-count"><b>${shots.length}/${need()}</b> ${T('kare hazır','frames ready')}</p>` : ''}
+      <div class="pt-booth-pair">
+        ${action('pt-booth-live', cam + '<span>' + (shots.length && many ? T(`Kalan ${left}`, `Other ${left}`) : many ? T('Başlat','Start') : T('Kamerayı aç','Open camera')) + '</span>', 'pill solid')}
+        <label class="pill" for="pt-booth-lib">${T('Galeriden seç','From library')}</label>
+      </div>
+      ${shots.length ? action('pt-booth-reset', T('Baştan başla','Start over'), 'text-button') : ''}
+      <label class="pt-booth-tag"><span class="small muted">${T('Şeritte yazsın (isteğe bağlı)','On the strip (optional)')}</span>
+        <input id="pt-booth-tag" class="field" maxlength="24" placeholder="${T('örn. cihangir','e.g. cihangir')}" value="${esc(tag())}" autocomplete="off" autocapitalize="none"></label>
+      <p class="small muted pt-booth-foot">${T('Fotoğrafların sadece telefonunda işlenir. Story’nde @pintertag’i etiketleyebilirsin.','Your photos stay on your phone. Tag @pintertag in your story.')}</p></div>`);
   }
 
   /* ---------- collecting frames ---------- */

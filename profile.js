@@ -8,15 +8,15 @@
   const cover = id => { const p = id && simplePhoto(id); return p ? `<img src="${esc(p.src)}" alt="">` : '<span class="pt-ig-hl-empty" aria-hidden="true"></span>'; };
   const linkText = l => String(l || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
 
-  function block(){
+  function block(full){
     const p = P(); if (p.hidden) return action('pt-ig-show', T('Profil önizlemesini göster','Show profile preview'), 'text-button pt-ig-showbtn');
     const ids = simpleIds(), empty = !p.bio && !p.name && !p.avatar;
     const stat = (n, l) => `<span><b>${esc(n === '' || n == null ? '–' : String(n))}</b><small>${l}</small></span>`;
     const hl = (p.hl || []).filter(h => h && (h.title || h.cover));
-    return `<section class="pt-ig" aria-label="${T('Profil önizlemesi','Profile preview')}">
-      <div class="pt-ig-user">${esc(p.user || state.campaign?.name || 'pintertag')}</div>
-      <div class="pt-ig-head"><button class="pt-ig-avatar" data-action="pt-ig-edit" aria-label="${T('Profili düzenle','Edit profile')}">${avatarHtml(p.avatar)}</button>
-        <div class="pt-ig-stats">${stat(ids.length, T('gönderi','posts'))}${stat(p.followers, T('takipçi','followers'))}${stat(p.following, T('takip','following'))}</div></div>
+    return `<section class="pt-ig${full ? ' is-full' : ''}" aria-label="${T('Profil önizlemesi','Profile preview')}">
+      ${p.user ? `<div class="pt-ig-user">${esc(p.user)}</div>` : ''}
+      <div class="pt-ig-head"><button class="pt-ig-avatar" data-action="${full ? 'pt-ig-edit' : 'pt-ig-full'}" aria-label="${T('Profil önizlemesi','Profile preview')}">${avatarHtml(p.avatar)}</button>
+        <div class="pt-ig-stats" ${full ? '' : 'data-action="pt-ig-full"'}>${stat(ids.length, T('gönderi','posts'))}${stat(p.followers, T('takipçi','followers'))}${stat(p.following, T('takip','following'))}</div></div>
       ${p.name ? `<div class="pt-ig-name">${esc(p.name)}</div>` : ''}
       ${p.bio ? `<div class="pt-ig-bio">${esc(p.bio)}</div>` : ''}
       ${p.link ? `<div class="pt-ig-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg>${esc(linkText(p.link))}</div>` : ''}
@@ -63,6 +63,7 @@
   document.addEventListener('input', e => { if (e.target.id === 'pt-ige-bio'){ const c = document.getElementById('pt-ige-count'); if (c) c.textContent = e.target.value.length + '/' + BIO_MAX; } });
   document.addEventListener('click', e => { const b = e.target.closest('[data-action]'); if (!b) return; const a = b.dataset.action;
     if (a === 'pt-ig-edit') open();
+    if (a === 'pt-ig-full') modal(T('profilin.','your profile.'), block(true));
     if (a === 'pt-ig-show'){ P().hidden = false; try { save(); } catch(_) {} render(); }
     if (a === 'pt-ige-avatar'){ pull(); pick.click(); }
     if (a === 'pt-ige-hladd'){ pull(); const ids = simpleIds(), used = draft.hl.map(h => h.cover); draft.hl.push({ title: '', cover: ids.find(id => !used.includes(id)) || ids[0] || '' }); editor(); }
