@@ -174,5 +174,7 @@
 
   /* returning user (or coming back from the email link): connect quietly */
   if (signedHint()) client().then(() => { if (user) afterSignIn(); paint(); }).catch(() => {});
+  /* from the score page: "plan your next 9 posts" opens the free account sheet once */
+  if (/[?&]signup=1/.test(location.search) && !signedHint()) setTimeout(() => { try { history.replaceState(null, '', location.pathname); } catch(_) {} if (!user) sheet(); }, 2200);
   window.PTCloud = { push, client, get user(){ return user; }, get status(){ return status; }, get error(){ return lastErr; }, _set(c, u){ sb = c; user = u; } };
 })();
