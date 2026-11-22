@@ -584,3 +584,8 @@ body.dark .pt-booth-stage>*{background:#222}
 .pt-sheet-text{background:#fff;color:#111;border-radius:16px;padding:18px;font-size:16px;line-height:1.45;margin:0;-webkit-user-select:text;user-select:text}
 .pt-sheet-note{color:#fff;font-size:15px;line-height:1.4;text-align:center;max-width:32ch;margin:16px 0 14px}
 .pt-sheet-x{background:#fff;color:#111;border:0;border-radius:99px;height:46px;padding:0 28px;font-weight:700;font-size:15px}
+
+/* post calendar week: posts are square-ish cards, stories stay round */
+.post-week{margin-bottom:8px}
+.story-ring.is-post,.story-ring.is-post img,.story-ring.is-post>span{border-radius:14px}
+.story-thumb.is-post,.story-thumb.is-post img{border-radius:10px}

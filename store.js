@@ -16,6 +16,9 @@
   function save(state, toastFn){
     const pending = [];
     const slim = { ...state, photos: (state.photos || []).map(p => slimItem(p, pending)), storyMedia: (state.storyMedia || []).map(p => slimItem(p, pending)) };
+    /* the other account (brand / personal) that is put away: same short references, never full images */
+    if (state.spaces){ slim.spaces = {}; for (const k in state.spaces){ const sp = state.spaces[k] || {};
+      slim.spaces[k] = { ...sp, photos: (sp.photos || []).map(p => slimItem(p, pending)), storyMedia: (sp.storyMedia || []).map(p => slimItem(p, pending)) }; } }
     try { localStorage.setItem(KEY, JSON.stringify(slim)); }
     catch (e) { if (!warned && toastFn){ warned = true; toastFn(); } return false; }
     return true; }
