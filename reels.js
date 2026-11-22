@@ -44,7 +44,39 @@
   const _sheet = simpleSheet; simpleSheet = function(id){ const out = _sheet.apply(this, arguments); const p = simplePhoto(id);
     if (p && p.video && window.PTHQ){ PTHQ.video(id).then(b => { const box = document.querySelector('.simple-sheet-photo'); if (!b || !box) return;
       if (lastUrl) URL.revokeObjectURL(lastUrl); lastUrl = URL.createObjectURL(b);
-      box.innerHTML = `<video src="${lastUrl}" poster="${esc(p.src)}" playsinline muted loop autoplay controls></video>`; }); }
+      box.innerHTML = `<video src="${lastUrl}" poster="${esc(p.src)}" playsinline muted loop autoplay controls></video>`;
+      if (!box.parentNode.querySelector('.pt-reel-coverbtn')) box.insertAdjacentHTML('afterend', action('pt-reel-cover', T('Kapağı değiştir','Change cover'), 'sheet-row pt-reel-coverbtn', `data-id="${esc(id)}"`)); }); }
     return out; };
-  window.PTReels = { cover, addVideos };
+
+  /* cover picker: scrub the video and keep a frame, or use a separate photo like instagram does */
+  let coverId = null, coverUrl = '';
+  async function setCover(id, source){
+    const p = simplePhoto(id); if (!p) return; const w = source.videoWidth || source.naturalWidth || source.width, h = source.videoHeight || source.naturalHeight || source.height; if (!w || !h) throw 0;
+    const c = document.createElement('canvas'), r = Math.min(1, 800 / Math.max(w, h)); c.width = Math.round(w * r); c.height = Math.round(h * r);
+    const g = c.getContext('2d'); g.drawImage(source, 0, 0, c.width, c.height);
+    const hq = document.createElement('canvas'), r2 = Math.min(1, 2160 / Math.max(w, h)); hq.width = Math.round(w * r2); hq.height = Math.round(h * r2); hq.getContext('2d').drawImage(source, 0, 0, hq.width, hq.height);
+    const px = g.getImageData(0, 0, c.width, c.height).data; let lum = 0, sat = 0, n = 0;
+    for (let i = 0; i < px.length; i += 400){ lum += (px[i] + px[i + 1] + px[i + 2]) / 765; sat += (Math.max(px[i], px[i + 1], px[i + 2]) - Math.min(px[i], px[i + 1], px[i + 2])) / 255; n++; }
+    p.src = c.toDataURL('image/jpeg', .7); p.light = lum / n; p.accent = sat / n > .3; p.bw = sat / n < .03; delete p.crop; delete p.cropSource; p.zoom = 1;
+    if (window.PTHQ) await PTHQ.fromImage(id, hq); try { save(); } catch(_) {} render(); }
+  async function coverEditor(id){
+    const p = simplePhoto(id); if (!p || !window.PTHQ) return; const b = await PTHQ.video(id); if (!b) return;
+    coverId = id; if (coverUrl) URL.revokeObjectURL(coverUrl); coverUrl = URL.createObjectURL(b);
+    modal(T('kapak seç.','choose a cover.'), `<div class="pt-cover">
+      <div class="pt-cover-frame"><video id="pt-cover-v" src="${coverUrl}" playsinline muted preload="auto"></video></div>
+      <input id="pt-cover-t" type="range" min="0" max="1000" value="0" aria-label="${T('Kare seç','Pick a frame')}">
+      <p class="small muted">${T('Kaydırarak kareyi seç. Grid’de bu kare görünür.','Slide to pick the frame. This is what your grid shows.')}</p>
+      <div class="actions">${action('pt-cover-save', T('Bu kareyi kapak yap','Use this frame'), 'pill solid')}<label class="pill" for="pt-cover-file">${T('Galeriden kapak seç','Cover from library')}</label></div>
+      <input id="pt-cover-file" type="file" accept="image/*" hidden></div>`);
+    const v = document.getElementById('pt-cover-v'), t = document.getElementById('pt-cover-t');
+    v.onloadedmetadata = () => { try { v.currentTime = Math.min(0.6, (v.duration || 1) / 3); t.value = Math.round(v.currentTime / (v.duration || 1) * 1000); } catch(_) {} };
+    t.oninput = () => { if (v.duration) try { v.currentTime = t.value / 1000 * v.duration; } catch(_) {} }; }
+  document.addEventListener('click', async e => { const b = e.target.closest('[data-action]'); if (!b) return; const a = b.dataset.action;
+    if (a === 'pt-reel-cover') coverEditor(b.dataset.id);
+    if (a === 'pt-cover-save' && coverId){ const v = document.getElementById('pt-cover-v');
+      try { await setCover(coverId, v); simpleSheet(coverId); toast(T('Kapak güncellendi.','Cover updated.')); } catch(_) { toast(T('Bu kare alınamadı, biraz kaydırıp tekrar dene.','Couldn’t grab that frame. Slide a little and try again.')); } } });
+  document.addEventListener('change', async e => { if (e.target.id !== 'pt-cover-file' || !coverId) return; const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return;
+    const u = URL.createObjectURL(f); try { const im = await loadImg(u); await setCover(coverId, im); simpleSheet(coverId); toast(T('Kapak güncellendi.','Cover updated.')); }
+    catch(_) { toast(T('Fotoğraf açılamadı.','Couldn’t open that photo.')); } finally { URL.revokeObjectURL(u); } });
+  window.PTReels = { cover, addVideos, setCover, coverEditor };
 })();
