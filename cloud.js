@@ -99,15 +99,15 @@
       <label class="m-check"><input type="checkbox" id="cl-mk" ${m.marketing ? 'checked' : ''}><span>${tr('Yeni özellik ve ipuçlarını e-postayla almak istiyorum.', 'Email me new features and tips.')}</span></label>
       <div class="actions">${action('cl-sync', tr('Şimdi yedekle', 'Back up now'), 'pill solid')}${action('cl-out', tr('Çıkış yap', 'Sign out'), 'pill')}</div>
       <button class="cl-del" data-action="cl-del">${tr('Hesabımı sil', 'Delete my account')}</button></div>`);
-    if (sentTo) return modal(tr('e-postana bak.', 'check your email.'), `<form class="cl-sheet" id="cl-code-form"><p>${tr(`<b>${esc(sentTo)}</b> adresine bir giriş e-postası gönderdik. İçindeki bağlantıya dokun; Pintertag açılır ve giriş yapılmış olur.`, `We sent a sign-in email to <b>${esc(sentTo)}</b>. Tap the link inside; Pintertag opens and you’re signed in.`)}</p>
-      <p class="cl-note">${tr('Gelmediyse spam klasörüne bak. E-postada bir kod varsa buraya da yazabilirsin:', 'Not there? Check spam. If the email has a code, you can type it here:')}</p>
+    if (sentTo) return modal(tr('kodu gir.', 'enter your code.'), `<form class="cl-sheet" id="cl-code-form"><p>${tr(`<b>${esc(sentTo)}</b> adresine 6 haneli bir kod gönderdik. Gönderen: Pintertag.`, `We sent a 6-digit code to <b>${esc(sentTo)}</b>. From: Pintertag.`)}</p>
       <input class="cl-input cl-code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" maxlength="10" placeholder="••••••" required>
-      <button class="pill wide" type="submit">${tr('Kodla giriş yap', 'Sign in with code')}</button>
+      <button class="pill solid wide" type="submit">${tr('Giriş yap', 'Sign in')}</button>
+      <p class="cl-note">${tr('E-postadaki butona da dokunabilirsin. Gelmediyse spam klasörüne bak.', 'You can also tap the button in the email. Not there? Check spam.')}</p>
       <button type="button" class="cl-link" data-action="cl-back">${tr('Başka e-posta kullan', 'Use another email')}</button></form>`);
     modal(tr('ücretsiz hesap.', 'free account.'), `<form class="cl-sheet" id="cl-mail-form"><p class="cl-lead">${tr('Planın kaybolmasın. E-postanla gir; grid’in, planların ve fotoğrafların hesabında yedeklensin, başka telefonda da açılsın.', 'Don’t lose your plan. Sign in with your email; your grid, plans and photos are backed up and open on any phone.')}</p>
       <input class="cl-input" name="email" type="email" autocomplete="email" inputmode="email" placeholder="${tr('e-posta adresin', 'your email')}" required>
       <label class="m-check"><input type="checkbox" name="mk"><span>${tr('Yeni özellik ve ipuçlarını e-postayla almak istiyorum.', 'Email me new features and tips.')}</span></label>
-      <button class="pill solid wide" type="submit">${tr('Giriş bağlantısı gönder', 'Send sign-in link')}</button>
+      <button class="pill solid wide" type="submit">${tr('Kod gönder', 'Send code')}</button>
       <p class="cl-note">${tr('Şifre yok. Ücretsiz. Devam edersen ', 'No password. Free. By continuing you accept the ')}<button type="button" class="cl-link" data-action="m-legal" data-doc="privacy">${tr('gizlilik metnini', 'privacy notice')}</button>${tr(' kabul etmiş olursun.', '.')}</p></form>`); }
   function stateLine(){ const m = meta();
     if (status === 'saving' || status === 'loading') return tr('Yedekleniyor…', 'Backing up…');
@@ -151,7 +151,7 @@
     try { await client();
       if (f.id === 'cl-mail-form'){ const email = f.elements.email.value.trim().toLowerCase(); setMeta({ marketing: !!f.elements.mk.checked });
         const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: location.origin + location.pathname } });
-        if (error) throw error; sentTo = email; sheet(); }
+        if (error) throw error; sentTo = email; sheet(); setTimeout(() => document.querySelector('.cl-code')?.focus(), 60); }
       if (f.id === 'cl-code-form'){ const token = f.elements.code.value.replace(/\D/g, '');
         const { error } = await sb.auth.verifyOtp({ email: sentTo, token, type: 'email' }); if (error) throw error;
         sentTo = ''; closeModal(); say(tr('Giriş yapıldı.', 'Signed in.')); }
