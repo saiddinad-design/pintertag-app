@@ -248,6 +248,16 @@
     g.textAlign = 'right'; g.font = `500 21px ${sans}`; g.fillText(label(), W - M - 4, fy - 14); g.fillStyle = '#757575'; g.fillText(dateText(), W - M - 4, fy + 16);
     return c;
   }
+  /* strips are tall and thin: save them on a 9:16 story page (1080x1920), standing straight in the middle */
+  function stripStory(strip){
+    const c = document.createElement('canvas'); c.width = SW; c.height = SH; const g = c.getContext('2d');
+    g.fillStyle = '#ecebe7'; g.fillRect(0, 0, SW, SH);
+    let h = SH - 180, w = h * strip.width / strip.height; if (w > SW - 200){ w = SW - 200; h = w * strip.height / strip.width; }
+    const x = (SW - w) / 2, y = (SH - h) / 2;
+    g.save(); g.shadowColor = 'rgba(0,0,0,.18)'; g.shadowBlur = 40; g.shadowOffsetY = 14; g.fillStyle = '#fbfaf7'; g.fillRect(x, y, w, h); g.restore();
+    g.imageSmoothingQuality = 'high'; g.drawImage(strip, x, y, w, h);
+    return c;
+  }
   function drawCard(print, logo, strip){
     const c = document.createElement('canvas'); c.width = SW; c.height = SH; const g = c.getContext('2d');
     g.fillStyle = '#e9e7e3'; g.fillRect(0, 0, SW, SH);
@@ -269,7 +279,7 @@
   async function renderOut(ims, m){
     const strip = m !== '1', logo = await loadImg('assets/logo.png').catch(() => null);
     const printC = strip ? drawStrip(ims, logo) : drawPrint(ims[0], logo), cardC = drawCard(printC, logo, strip);
-    const print = await blobOf(printC, 'image/jpeg', .92), card = await blobOf(cardC, 'image/jpeg', .92);
+    const print = await blobOf(strip ? stripStory(printC) : printC, 'image/jpeg', .92), card = await blobOf(cardC, 'image/jpeg', .92);
     if (!print || !card) throw new Error('blob');
     if (last){ URL.revokeObjectURL(last.printUrl); URL.revokeObjectURL(last.cardUrl); }
     last = { print, card, printUrl: URL.createObjectURL(print), cardUrl: URL.createObjectURL(card), mode: m, tone: tone() };
