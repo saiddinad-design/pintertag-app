@@ -8,7 +8,7 @@
     const days = storyDays(postDay), all = posts(), today = localDate(new Date());
     const items = all.filter(p => p.date === postDay).sort((a, b) => a.time.localeCompare(b.time));
     const count = days.filter(d => all.some(p => p.date === d)).length;
-    const kind = p => p.photos.length > 1 ? 'Carousel' : 'Post';
+    const kind = p => simplePhoto(p.photos[0])?.video ? 'Reels' : p.photos.length > 1 ? 'Carousel' : 'Post';
     return `<section class="daily-stories post-week"><div class="stories-heading"><h2>${T('post takvimi.','post calendar.')}</h2><span>${count}/7 ${T('gün planlı','days planned')}</span></div>
       <div class="story-week-heading">${action('pw-week', '‹', 'icon-button', 'data-step="-7" aria-label="' + T('Önceki hafta','Previous week') + '"')}<span>${storyDate(days[0]).toLocaleDateString(loc(), { day: 'numeric', month: 'short' })} — ${storyDate(days[6]).toLocaleDateString(loc(), { day: 'numeric', month: 'short' })}</span>${action('pw-week', '›', 'icon-button', 'data-step="7" aria-label="' + T('Sonraki hafta','Next week') + '"')}</div>
       <div class="story-week">${days.map(d => { const rows = all.filter(p => p.date === d);

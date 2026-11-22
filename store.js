@@ -43,6 +43,9 @@
       c.width = Math.round((im.naturalWidth || im.width) * r); c.height = Math.round((im.naturalHeight || im.height) * r); { const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(im, 0, 0, c.width, c.height); }
       const b = await blobOf(c, .95); if (b){ await put(id + ':orig', b); if (objUrls[id]){ URL.revokeObjectURL(objUrls[id]); delete objUrls[id]; } } return !!b; } catch(_) { return false; } },
     get: id => get(id + ':orig').then(b => b instanceof Blob ? b : null),
+    /* reels: the video file itself, untouched, next to its cover frame */
+    putVideo: (id, blob) => put(id + ':video', blob),
+    video: id => get(id + ':video').then(b => b instanceof Blob ? b : null),
     async url(id){ if (objUrls[id]) return objUrls[id]; const b = await root.PTHQ.get(id); return b ? (objUrls[id] = URL.createObjectURL(b)) : null; },
     /* the file that goes to instagram: the crop at 1080x1440 when there is one, else the hq copy */
     async exportFile(p, name){ const b = await root.PTHQ.get(p.id);

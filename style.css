@@ -589,3 +589,7 @@ body.dark .pt-booth-stage>*{background:#222}
 .post-week{margin-bottom:8px}
 .story-ring.is-post,.story-ring.is-post img,.story-ring.is-post>span{border-radius:14px}
 .story-thumb.is-post,.story-thumb.is-post img{border-radius:10px}
+
+/* reels in the grid: play mark top right, like instagram */
+.simple-tile .pt-reel{position:absolute;top:8px;right:8px;z-index:4;color:#fff;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));pointer-events:none;line-height:0}
+.simple-sheet-photo video{display:block;width:100%;max-height:60vh;object-fit:contain;background:#000;border-radius:inherit}
