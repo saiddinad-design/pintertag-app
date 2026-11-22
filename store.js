@@ -28,7 +28,7 @@
     for (const p of state.storyMedia || []) await fill(p);
     return n; }
   const isRef = v => typeof v === 'string' && v.startsWith(REF);
-  root.PTStore = { save, hydrate, isRef };
+  root.PTStore = { save, hydrate, isRef, get, put };
   /* high-quality copy of every upload (long side 2160, jpeg .92). the 800px preview stays for the planner;
      crops and shares are rendered from this copy so nothing posted is degraded. key = <photo id>:orig */
   const HQ = 3240, objUrls = {};
