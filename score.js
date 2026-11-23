@@ -25,19 +25,19 @@
       if (l>.5){ const hi=Math.max(Y[i],Y[i-1],Y[i+1],Y[i-96],Y[i+96]), lo=Math.min(Y[i],Y[i-1],Y[i+1],Y[i-96],Y[i+96]); if (hi>.75 && lo<.3) tx0++; } }
     return { sat:s, lum, contrast, sharp: lap/(46*46), warm: r-b, vivid: vv/n, v:3, flat: fl0/nn, bwx: bw0/nn, txt: tx0/nn, L: Lsum/n, Lp95: sorted[Math.floor(n*.95)], a: aS/n, hist: hist.map(v => v/(Ct+1e-6)) };
   }
-  /* v3 grid score (nov 23). recalibrated on 69 grids: 49 public accounts (fashion houses, retail, creators, celebrities, news,
-     meme pages) measured the way a phone screenshot arrives, plus 20 real profile screenshots of menswear brands, jewellery
-     houses and personal style creators. each grid was rated by eye on a 0-100 art-direction scale.
-     the old score matched those ratings at r = 0.09 (meme and news pages got 90+); this one at r = 0.82 (0.78 leave-one-out,
+  /* v3 grid score (nov 23). recalibrated on 85 grids: 49 public accounts (fashion houses, retail, creators, celebrities, news,
+     meme pages) measured the way a phone screenshot arrives, plus 36 real profile screenshots of menswear brands, jewellery
+     houses, and male and female style creators. each grid was rated by eye on a 0-100 art-direction scale.
+     the old score matched those ratings at r = 0.09 (meme and news pages got 90+); this one at r = 0.81 (0.78 leave-one-out,
      mean miss about 11 points). four signals drive the total, all measured on the device:
        palette - how many unrelated hue families the grid uses (entropy) and how loud the colour is overall
        calm    - visual clutter: fine detail, text overlays, busy collages (edge energy) plus crushed black / blown white areas
      rhythm (spread of quiet vs busy frames) is reported but no longer moves the total: it did not hold up on the new screenshots.
-     known limits: all-black grids land ~15 under an art director's eye; text written over photos is only partly caught. */
+     known limits: dark, cohesive grids (all-black, deep brown) land ~15-20 under an art director's eye; text written over photos is only partly caught. */
   const sdv = a => { const m = a.reduce((t,v)=>t+v,0)/a.length; return Math.sqrt(a.reduce((t,v)=>t+(v-m)**2,0)/a.length); };
   const hd = (x,y) => x.hist.reduce((t,v,k)=>t+Math.abs(v-y.hist[k]),0);
-  const MU = { ent: .6561, bwx: .1358, sat: .2709, sharp: .123 }, SD = { ent: .1321, bwx: .1073, sat: .0992, sharp: .033 };
-  const W = { ent: -7.073, bwx: -5.586, sat: -6.409, sharp: -12.841 }, B0 = 60.797, CAL = [-2.543, 1.0418];
+  const MU = { ent: .644, bwx: .1307, sat: .2685, sharp: .1229 }, SD = { ent: .1361, bwx: .1012, sat: .0939, sharp: .0309 };
+  const W = { ent: -8.549, bwx: -4.827, sat: -6.104, sharp: -11.515 }, B0 = 62.776, CAL = [-2.21, 1.0352];
   const sig = z => Math.round(100 / (1 + Math.exp(1.1 * z)));
   function scoreGrid(ms){ const c = ms.filter(m => m && m.v >= 2 && m.hist); if (c.length < 2) return null;
     const P = [0,0,0,0,0,0,0,0]; let tot = 1e-6; c.forEach(m => m.hist.forEach((v,k) => { P[k] += v*m.sat; tot += v*m.sat; }));
