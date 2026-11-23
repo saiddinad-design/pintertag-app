@@ -8,7 +8,7 @@
   const baseOf = ms => { const ok = ms.filter(Boolean), b = {}; KEYS.forEach(([k]) => b[k] = med(ok.map(m => m[k]))); return b; };
   const dist = (m, b) => KEYS.reduce((a,[k,th]) => a + ((m[k]-b[k])/th)**2, 0);
   function flags(ms){ const ok = ms.filter(Boolean); if (ok.length < 6) return ms.map(() => null);
-    const sc = scoreGrid(ms); if (sc && sc.total >= 90) return ms.map(() => null);
+    const sc = scoreGrid(ms); if (sc && sc.total >= 80) return ms.map(() => null);
     const b = baseOf(ms);
     return ms.map(m => { if (!m) return null; let best = null; KEYS.forEach(([k,th,hi,lo]) => { const d=(m[k]-b[k])/th; if (Math.abs(d)>1.3 && (!best || Math.abs(d)>best.d)) best = { d:Math.abs(d), key: d>0?hi:lo }; }); return best; }); }
   const loadI = src => new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
@@ -19,7 +19,7 @@
   /* 1. every photo is measured on the device once: light, warmth, colour, sharpness */
   let measuring = false;
   async function analyze(){
-    if (measuring) return; const todo = state.photos.filter(p => (!p.m || p.m.v !== 2) && ready(p.src)); if (!todo.length){ label(); return; }
+    if (measuring) return; const todo = state.photos.filter(p => (!p.m || (p.m.v || 0) < 3) && ready(p.src)); if (!todo.length){ label(); return; }
     measuring = true; let n = 0;
     for (const p of todo){ const im = await loadI(p.src); if (!im) { p.m = null; continue; } p.m = measure(im); p.light = p.m.lum; p.accent = p.m.vivid > .18; p.bw = p.m.sat < .07; n++; }
     measuring = false; if (n){ save(); render(); } label(); }
@@ -122,7 +122,7 @@
      - with photo types (AI or hand-labelled) the rule engine runs, plus a storefront rule for the top row. never return a worse order. */
   const _arrange = simpleArrange;
   const NB = i => { const o = []; if (i % 3 < 2) o.push(i + 1); if (i + 3 < 9) o.push(i + 3); return o; };
-  const twin = (a, b) => a && b && a.v === 2 && b.v === 2 && hd(a, b) < .35 && Math.abs(a.L - b.L) < 6;
+  const twin = (a, b) => a && b && a.v >= 2 && b.v >= 2 && hd(a, b) < .35 && Math.abs(a.L - b.L) < 6;
   function problems(ids){ const ps = ids.slice(0, 9).map(simplePhoto), out = [];
     for (let i = 0; i < ps.length; i++) for (const j of NB(i)){ if (j >= ps.length) continue; const a = ps[i], b = ps[j]; if (!a || !b) continue;
       if (a.accent && b.accent) out.push({ i, j, k: 'accent' }); else if (twin(a.m, b.m)) out.push({ i, j, k: 'twin' }); }

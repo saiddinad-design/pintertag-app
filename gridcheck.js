@@ -96,22 +96,22 @@ const GC = (() => {
       quiet:['quiet luxury','calm, expensive, nothing shouts.'], beige:['beige universe','warm neutrals all the way down.'], film:['film roll','warm, a bit grainy, lived in.'],
       mono:['monochrome poet','black and white does the talking.'], night:['night owl','dark, moody, after hours.'], gallery:['gallery white','bright, clean, lots of air.'],
       riot:['colour riot','loud colour, big energy.'], coastal:['coastal blue','cool light, sea air.'], chaos:['cute chaos','fun, but your grid has no plan.'] },
-      verdict: ['museum level.','almost there. one post away.','good intentions, mixed results.','this is a camera roll, not a grid.'],
+      verdict: ['art director level.','strong. a few touches away.','good posts, no shared language.','a feed, not a grid.'],
       r: { dark:'post {i} is darker than the rest. looks like it fell in from another account.', bright:'post {i} is so bright it makes the rest look tired.',
         warm:'post {i} got a tan the others didn\'t.', cool:'post {i} is cold. everyone else is in golden hour.', sat:'post {i} is shouting, the rest are whispering.',
         flat:'post {i} looks washed out next to the others.', bwpair:'two black and whites side by side. reads like a newspaper.', accent:'the accent colour is everywhere. that\'s not an accent, that\'s wallpaper.',
-        rhythm:'brightness jumps from frame to frame. the grid reads scattered.', great:'someone is screenshotting this grid right now.', good:'one swap and this is a 90.' },
+        rhythm:'every post has the same density. the grid needs a few quiet frames to breathe.', text:'too much going on: text, detail, collage. from the profile it reads busy.', palette:'too many colour families. pick two or three and let the rest go.', great:'someone is screenshotting this grid right now.', good:'one swap moves this up a level.' },
       card:{ top:'grid check', foot:'what does your grid score?', by:'pintertag · your feed\'s art director' },
       challenge:'my grid got {s} and it\'s "{v}". what does yours get? pintertag' },
     tr: { vibes: {
       quiet:['sessiz lüks','sakin, pahalı, hiçbir şey bağırmıyor.'], beige:['bej evren','baştan sona sıcak nötrler.'], film:['film rulosu','sıcak, biraz grenli, yaşanmış.'],
       mono:['monokrom şair','konuşmayı siyah-beyaz yapıyor.'], night:['gece kuşu','karanlık, moody, mesai sonrası.'], gallery:['galeri beyazı','aydınlık, temiz, bol nefes.'],
       riot:['renk isyanı','yüksek renk, yüksek enerji.'], coastal:['kıyı mavisi','serin ışık, deniz havası.'], chaos:['tatlı kaos','eğlenceli ama grid\'inin bir planı yok.'] },
-      verdict: ['müze seviyesi.','neredeyse. tek kare uzakta.','iyi niyet, karışık sonuç.','bu grid değil, kamera rulosu.'],
+      verdict: ['sanat yönetmeni seviyesi.','güçlü. birkaç dokunuş kaldı.','kareler iyi, ortak dil yok.','bu bir akış, grid değil.'],
       r: { dark:'{i}. post diğerlerinden karanlık. başka bir hesaptan düşmüş gibi.', bright:'{i}. post o kadar parlak ki geri kalanı yorgun gösteriyor.',
         warm:'{i}. post tek başına güneşte bronzlaşmış.', cool:'{i}. post üşüyor, herkes altın saatte.', sat:'{i}. post bağırıyor, diğerleri fısıldıyor.',
         flat:'{i}. post diğerlerinin yanında solgun kalıyor.', bwpair:'iki siyah-beyaz yan yana. gazete sayfası olmuş.', accent:'vurgu rengi her yerde. vurgu değil, duvar kağıdı olmuş.',
-        rhythm:'parlaklık kareden kareye çok değişiyor. grid dağınık görünüyor.', great:'şu an biri bu grid\'in ekran görüntüsünü alıyor.', good:'tek bir değişiklikle bu 90 olur.' },
+        rhythm:'her kare aynı yoğunlukta. arada nefes aldıran sade kareler lazım.', text:'karelerde çok şey oluyor: yazı, detay, kolaj. profilden bakınca kalabalık okunuyor.', palette:'çok fazla renk ailesi var. iki üç renk seç, gerisini bırak.', great:'şu an biri bu grid\'in ekran görüntüsünü alıyor.', good:'tek bir değişiklik bunu bir üst seviyeye taşır.' },
       card:{ top:'grid puanı', foot:'senin grid\'in kaç alır?', by:'pintertag · feed\'inin sanat yönetmeni' },
       challenge:'grid\'im {s} aldı, "{v}" çıktı. seninki kaç alır? pintertag' }
   };
@@ -135,10 +135,13 @@ const GC = (() => {
     flags.map((f,i) => f ? {i, f} : null).filter(Boolean).sort((a,b) => b.f.d - a.f.d).slice(0,2).forEach(({i,f}) => { const k = key[f.key]; if (k) out.push(T[k].replace('{i}', p(i))); });
     const bw = ms.map(m => m && m.sat < .07); for (let i = 0; i < ms.length && out.length < 3; i++){ const nb = []; if (i%3 < 2) nb.push(i+1); if (i+3 < ms.length) nb.push(i+3); if (bw[i] && nb.some(j => bw[j])){ out.push(T.bwpair); break; } }
     const acc = ms.filter(m => m && m.vivid > .18).length; if (acc >= 5 && out.length < 3) out.push(T.accent);
-    const sg = (window.PTScore || window.__PT).scoreGrid(ms); if (sg && sg.lsd > 20 && out.length < 3) out.push(T.rhythm);
-    if (!out.length) out.push(score >= 90 ? T.great : T.good);
+    const sg = (window.PTScore || window.__PT).scoreGrid(ms);
+    if (sg && sg.clean != null){ const weak = [['text', sg.clean], ['palette', sg.palette], ['rhythm', sg.rhythmScore]].filter(([,v]) => v < 40).sort((a,b) => a[1]-b[1]);
+      for (const [k] of weak){ if (out.length >= 3) break; out.unshift(T[k]); } }
+    if (!out.length) out.push(score >= 80 ? T.great : T.good);
     return out.slice(0, 3); }
-  const verdict = s => tx().verdict[s >= 90 ? 0 : s >= 80 ? 1 : s >= 70 ? 2 : 3];
+  const band = s => s >= 80 ? 0 : s >= 65 ? 1 : s >= 45 ? 2 : 3;
+  const verdict = s => tx().verdict[band(s)];
   /* 1080x1920 story card: everything centred on one axis, the 9 posts on a white sheet,
      three backgrounds (pink default). kept inside Instagram's safe zone (top ~250, bottom ~340). */
   const THEMES = {
@@ -149,19 +152,19 @@ const GC = (() => {
   /* one line per grid: picked by score band, varied by the grid itself so two grids rarely get the same one */
   const LINES = {
     tr: [
-      ['bu grid’i kaydedip moodboard’a koyuyorlar.','profiline girenler takip etmeden çıkamıyor.','bu feed’in sanat yönetmeni var gibi.','her kare yerini bilmiş, kimse kimseyi ezmiyor.','burası grid değil, sergi.','scroll’u yavaşlatan cinsten.','tek kelime: tutarlı. iki kelime: çok tutarlı.','bu grid’e ekran görüntüsü alınır.','renkler aynı dili konuşuyor.','şu an biri bu grid’i arkadaşına atıyor.'],
-      ['bir kare daha düzelirse müze olur.','neredeyse kusursuz, bir post fazla bağırıyor.','çok iyi, ama bir kare yanlış partiye gelmiş.','ritim tutuyor, sadece bir yerde tökezliyor.','takip ettirir. bir kareyi değiştir, kaydettirir.','sakin ve güçlü. birini öne al, tamam.','iyi göz, eksik son dokunuş.','buradan sonrası detay işi.','profil temiz, bir kare kendi kafasında.','neredeyse estetik hesap seviyesi.'],
-      ['iyi niyet var, plan yok.','güzel kareler, birbirini tanımıyor.','her post tek başına iyi, birlikte kalabalık.','bu grid bir toplantı, herkes aynı anda konuşuyor.','ışık bir sağa bir sola, göz yoruluyor.','potansiyel var, sıralama yok.','bir kahve molası verip baştan dizelim.','renkler anlaşamamış.','iyi bir başlangıç, kötü bir sıralama.','sıralarsan bambaşka bir hesap olur.'],
-      ['bu grid değil, galeri klasörü.','her kare farklı bir hesaptan gelmiş gibi.','feed’in şu an “fark etmez” diyor.','burada herkes başrol oynamak istiyor.','renkler kavga ediyor, kazanan yok.','kamera rulosu modunda.','derin nefes. bunu toparlarız.','bu hesabın bir sanat yönetmenine ihtiyacı var.','takipçi gelir ama kalmaz.','iyi haber: düzeltmesi 5 dakika.']
+      ['bu grid’i kaydedip moodboard’a koyuyorlar.','bu feed’in bir sanat yönetmeni var.','her kare yerini biliyor,kimse kimseyi ezmiyor.','burası grid değil,sergi.','scroll’u yavaşlatan cinsten.','renkler aynı dili konuşuyor.'],
+      ['güçlü. bir kare fazla bağırıyor.','ritim tutuyor,bir yerde tökezliyor.','takip ettirir. bir kareyi değiştir,kaydettirir.','iyi göz,son dokunuş eksik.','buradan sonrası detay işi.','bir renk az olsa tamam.'],
+      ['güzel kareler,birbirini tanımıyor.','her post tek başına iyi,birlikte kalabalık.','potansiyel var,sıralama yok.','renkler aynı masaya oturmamış.','iyi niyet var,plan yok.','göz nereye bakacağını bilemiyor.'],
+      ['bu bir akış,grid değil.','her kare başka bir hesaptan gelmiş gibi.','yazılar fotoğrafların önüne geçmiş.','herkes aynı anda konuşuyor.','burada grid değil,haber bandı var.','derin nefes. bunu toparlarız.']
     ],
     en: [
-      ['people are saving this grid to their moodboards.','nobody leaves this profile without following.','this feed clearly has an art director.','every post knows its place.','this isn’t a grid, it’s a gallery.','the kind of grid that slows the scroll.','one word: consistent. two words: very consistent.','this grid gets screenshotted.','the colours speak the same language.','someone is sending this grid to a friend right now.'],
-      ['fix one post and it’s museum level.','almost perfect, one post is shouting.','great, but one post came to the wrong party.','the rhythm holds, it trips once.','it gets follows. swap one, it gets saves.','calm and strong. move one up and done.','good eye, missing the last touch.','from here it’s all details.','clean profile, one post has its own plans.','almost aesthetic-account level.'],
-      ['good intentions, no plan.','nice posts that have never met.','great alone, crowded together.','this grid is a meeting where everyone talks at once.','the light goes left, then right. eyes get tired.','potential, no order.','coffee break, then we re-arrange.','the colours didn’t agree.','good start, bad order.','sort it and it’s a different account.'],
-      ['this isn’t a grid, it’s a camera roll.','every post looks like it’s from another account.','your feed is saying “whatever”.','everyone here wants the lead role.','the colours are fighting and nobody wins.','camera roll mode: on.','deep breath. we can fix this.','this account needs an art director.','followers will come, but won’t stay.','good news: it’s a 5-minute fix.']
+      ['people are saving this grid to their moodboards.','this feed has an art director.','every post knows its place.','this isn’t a grid,it’s a gallery.','the kind of grid that slows the scroll.','the colours speak the same language.'],
+      ['strong. one post is shouting.','the rhythm holds,it trips once.','it gets follows. swap one,it gets saves.','good eye,missing the last touch.','from here it’s all details.','one colour less and it’s done.'],
+      ['nice posts that have never met.','great alone,crowded together.','potential,no order.','the colours never sat at the same table.','good intentions,no plan.','the eye doesn’t know where to look.'],
+      ['a feed,not a grid.','every post looks like it’s from another account.','the text is louder than the photos.','everyone is talking at once.','this reads like a news ticker,not a grid.','deep breath. we can fix this.']
     ]
   };
-  function lineFor(score, tiles){ const band = score >= 90 ? 0 : score >= 80 ? 1 : score >= 70 ? 2 : 3, pool = LINES[L()][band];
+  function lineFor(score, tiles){ const pool = LINES[L()][band(score)];
     let h = score * 31; (tiles || []).slice(0, 9).forEach(t => { const str = String(t); for (let i = str.length - 1; i > Math.max(0, str.length - 400); i -= 37) h = (h * 33 + str.charCodeAt(i)) >>> 0; });
     return pool[h % pool.length]; }
   async function card(o){ const W = 1080, H = 1920, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
@@ -184,7 +187,7 @@ const GC = (() => {
     const grpW = 2*R + 36 + tw2, gx = cx - grpW/2, ry = 450;
     g.fillStyle = dark ? '#F3EFE8' : '#151412'; g.beginPath(); g.arc(gx + R, ry, R, 0, 7); g.fill();
     g.lineCap = 'round'; g.lineWidth = 11; g.strokeStyle = dark ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.14)'; g.beginPath(); g.arc(gx + R, ry, R - 15, 0, 7); g.stroke();
-    g.strokeStyle = o.score >= 85 ? '#22B573' : o.score >= 70 ? '#F5A524' : '#F0475B'; g.beginPath(); g.arc(gx + R, ry, R - 15, -Math.PI/2, -Math.PI/2 + frac * Math.PI * 2); g.stroke();
+    g.strokeStyle = o.score >= 75 ? '#22B573' : o.score >= 50 ? '#F5A524' : '#F0475B'; g.beginPath(); g.arc(gx + R, ry, R - 15, -Math.PI/2, -Math.PI/2 + frac * Math.PI * 2); g.stroke();
     g.textAlign = 'center'; g.fillStyle = dark ? '#151412' : '#ffffff'; g.font = `700 78px ${sans}`; ls('-3px'); g.fillText(String(o.score), gx + R, ry + 20); ls('0px');
     g.font = `600 20px ${sans}`; g.globalAlpha = .6; g.fillText('/100', gx + R, ry + 50); g.globalAlpha = 1;
     g.textAlign = 'left'; g.fillStyle = th.ink; g.font = `700 ${fs}px ${sans}`; ls('-1px'); const lh = fs * 1.15, y0 = ry - (rows2.length - 1) * lh / 2 + fs * .35;
