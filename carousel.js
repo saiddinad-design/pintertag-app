@@ -12,7 +12,7 @@
 .cc-row p{font-size:14px;line-height:1.45;margin:10px 0 0;color:var(--muted)}.cc-row p.cc-fix{color:inherit;border-left:2px solid currentColor;padding-left:10px}
 .cc-strip{display:flex;gap:6px;overflow-x:auto;padding:4px 0 2px;scrollbar-width:none}.cc-strip figure{margin:0;flex:0 0 64px;position:relative}
 .cc-strip img{width:64px;height:80px;object-fit:cover;border-radius:8px;display:block}.cc-strip figcaption{position:absolute;left:4px;top:4px;background:rgba(0,0,0,.72);color:#fff;font-size:11px;font-weight:600;border-radius:99px;min-width:18px;height:18px;line-height:18px;text-align:center;padding:0 4px}
-.cc-h{font-size:13px;color:var(--muted);margin:22px 0 6px}.cc-hero-img{display:flex;gap:14px;align-items:flex-start;margin:4px 0 6px}.cc-hero-img img{width:132px;height:165px;object-fit:cover;border-radius:12px;flex:0 0 auto}.cc-why{margin:0;padding:0;list-style:none;font-size:14px;line-height:1.4}.cc-why li{margin:0 0 6px}.cc-why b{font-size:13px;font-weight:600}.cc-skip figure{opacity:.55}.cc-tag{display:block;font-size:10px;color:var(--muted);margin-top:3px;text-align:center;line-height:1.2}.cc-note{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.4}`;
+.cc-h{font-size:13px;color:var(--muted);margin:22px 0 6px}.cc-hero-img{display:flex;gap:14px;align-items:flex-start;margin:4px 0 6px}.cc-hero-img img{width:132px;height:165px;object-fit:cover;border-radius:12px;flex:0 0 auto}.cc-why{margin:0;padding:0;list-style:none;font-size:14px;line-height:1.4}.cc-why li{margin:0 0 6px}.cc-why b{font-size:13px;font-weight:600}.cc-skip figure{opacity:.55}.cc-tag{display:block;font-size:10px;color:var(--muted);margin-top:3px;text-align:center;line-height:1.2;white-space:normal;overflow-wrap:anywhere;width:64px}.cc-note{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.4}`;
   const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
   document.body.insertAdjacentHTML('beforeend', '<input id="pt-cc-input" type="file" accept="image/*" multiple hidden><input id="pt-cc-shoot" type="file" accept="image/*" multiple hidden>');
   const input = document.getElementById('pt-cc-input'), shootIn = document.getElementById('pt-cc-shoot');
@@ -151,13 +151,21 @@
     const keep = idx.filter(i => dupOf[i] === undefined && !flags[i].includes('blur')).sort((a, b) => score[b] - score[a]);
     const top = keep.length ? keep[0] : idx.slice().sort((a, b) => score[b] - score[a])[0];
     /* best carousel: start from the top frame, add the frame that keeps the set one family and scores best, up to 4 */
-    let set = keep.length ? [top] : [], famMin = (typeof state !== 'undefined' && state.mode === 'personal') ? 6 : 7;
-    while (set.length < 4){ let bi = -1, bv = -1;
-      keep.filter(i => !set.includes(i)).forEach(i => { const a = analyse([...set, i].map(k => ms[k])), v = score[i] / 100 + a.fam / 10 * 1.5; if ((set.length < 2 || a.fam >= famMin) && v > bv){ bv = v; bi = i; } });
-      if (bi < 0) break; set.push(bi); }
-    let car = null;
-    if (set.length >= 3){ const a = analyse(set.map(k => ms[k])); car = { ids: a.order.map(k => set[k]), r: analyse(a.order.map(k => ms[set[k]])) }; }
-    return { top, score, stopN, qual, fitN, flags, dupOf, keep, car, grid: !!fitN };
+    /* looks: one outfit / one location reads as one set of colours (background + clothes). average-linkage clustering on the
+       slide distance; a carousel is built inside one look only, so two outfits are never mixed in one post */
+    const looks = (() => { let cl = idx.map(i => [i]); const dist = (A, B) => { let t = 0; A.forEach(i => B.forEach(j => t += near(ms[i], ms[j]))); return t / (A.length * B.length); };
+      for (;;){ let ba = -1, bb = -1, bd = 1e9; for (let a = 0; a < cl.length; a++) for (let b = a + 1; b < cl.length; b++){ const d = dist(cl[a], cl[b]); if (d < bd){ bd = d; ba = a; bb = b; } }
+        if (ba < 0 || bd > 3.2) break; cl[ba] = cl[ba].concat(cl[bb]); cl.splice(bb, 1); }
+      return cl; })();
+    const famMin = (typeof state !== 'undefined' && state.mode === 'personal') ? 6 : 7;
+    const build = pool => { const p = pool.slice().sort((a, b) => score[b] - score[a]); if (p.length < 3) return null; const set = [p[0]];
+      while (set.length < 4){ let bi = -1, bv = -1;
+        p.filter(i => !set.includes(i)).forEach(i => { const a = analyse([...set, i].map(k => ms[k])), v = score[i] / 100 + a.fam / 10 * 1.5; if ((set.length < 2 || a.fam >= famMin) && v > bv){ bv = v; bi = i; } });
+        if (bi < 0) break; set.push(bi); }
+      if (set.length < 3) return null; const a = analyse(set.map(k => ms[k])), ids = a.order.map(k => set[k]); return { ids, r: analyse(ids.map(k => ms[k])) }; };
+    const cars = looks.map(g => build(g.filter(i => keep.includes(i)))).filter(Boolean).sort((a, b) => b.r.total - a.r.total).slice(0, 2);
+    const lookOf = {}; looks.forEach((g, k) => g.forEach(i => lookOf[i] = k));
+    return { top, score, stopN, qual, fitN, flags, dupOf, keep, cars, looks: looks.length, grid: !!fitN };
   }
 
   function showShoot(p, sl){
@@ -166,15 +174,15 @@
     if (p.qual[i] >= .85) why.push(T('Benzerleri arasında en net olanı.', 'The sharpest of its look-alikes.'));
     if (p.fitN && p.fitN[i] >= .7) why.push(T('Grid’indeki renklerle uyumlu; feed’e oturur.', 'Sits with the colours already on your grid.'));
     if (!why.length) why.push(T('Netlik, ışık ve dikkat çekme dengesi en iyi olan kare.', 'The best balance of focus, light and stopping power in this shoot.'));
-    const tag = k => ({ blur: T('net değil', 'out of focus'), dark: T('çok karanlık', 'too dark'), bright: T('patlamış', 'blown out'), dup: T('benzeri daha iyi', 'better twin') })[k];
+    const tag = k => ({ blur: T('bulanık', 'blurry'), dark: T('karanlık', 'too dark'), bright: T('patlamış', 'blown out'), dup: T('ikizi:', 'twin of') })[k];
     const fig = (k, extra = '') => `<figure><img src="${sl[k].thumb}" alt=""><figcaption>${k + 1}</figcaption>${extra}</figure>`;
     const ranked = p.keep.slice(0, 12), skip = sl.map((_, k) => k).filter(k => p.flags[k].length);
     modal(T('çekimin en iyisi.', 'best of your shoot.'), `<p class="cc-h" style="margin-top:0">${T('Bunu paylaş', 'Post this one')}</p>
       <div class="cc-hero-img"><img src="${sl[i].big}" alt=""><ul class="cc-why"><li><b>${i + 1}. ${T('kare', 'photo')} · ${p.score[i]}/100</b></li>${why.map(w => `<li>${w}</li>`).join('')}</ul></div>
-      ${p.car ? `<p class="cc-h">${T(`En iyi karusel (${p.car.ids.length} kare, bu sırayla)`, `Best carousel (${p.car.ids.length} photos, in this order)`)}</p><div class="cc-strip">${p.car.ids.map(k => fig(k)).join('')}</div>
-        <p class="cc-note" style="margin-top:6px">${T(`Karusel puanı ${p.car.r.total.toFixed(1)}/10.`, `Carousel score ${p.car.r.total.toFixed(1)}/10.`)} ${p.car.r.fam >= 8 ? T('Kareler aynı aileden.', 'The photos sit in one family.') : ''}</p>` : `<p class="cc-note">${T('Karusel için birbirine uyan en az 3 net kare çıkmadı.', 'There weren’t 3 sharp frames that work together for a carousel.')}</p>`}
+      ${p.cars.length ? p.cars.map((c, k) => `<p class="cc-h">${p.cars.length > 1 ? T(`Karusel ${k + 1} · tek look · ${c.ids.length} kare, bu sırayla`, `Carousel ${k + 1} · one look · ${c.ids.length} photos, in this order`) : T(`En iyi karusel · ${c.ids.length} kare, bu sırayla`, `Best carousel · ${c.ids.length} photos, in this order`)}</p><div class="cc-strip">${c.ids.map(i => fig(i)).join('')}</div>
+        <p class="cc-note" style="margin-top:6px">${T(`Karusel puanı ${c.r.total.toFixed(1)}/10.`, `Carousel score ${c.r.total.toFixed(1)}/10.`)}</p>`).join('') + (p.cars.length > 1 ? `<p class="cc-note">${T('Çekimde iki ayrı look var: aynı karusele karıştırma, iki ayrı post yap.', 'This shoot has two looks: don’t mix them in one carousel, make two posts.')}</p>` : '') : `<p class="cc-note">${T('Karusel için aynı look’tan en az 3 net kare çıkmadı.', 'There weren’t 3 sharp frames from one look for a carousel.')}</p>`}
       ${ranked.length > 1 ? `<p class="cc-h">${T('Sıralama', 'Ranking')}</p><div class="cc-strip">${ranked.map(k => fig(k, `<span class="cc-tag">${p.score[k]}</span>`)).join('')}</div>` : ''}
-      ${skip.length ? `<p class="cc-h">${T('Bunları geç', 'Skip these')}</p><div class="cc-strip cc-skip">${skip.map(k => fig(k, `<span class="cc-tag">${p.flags[k].map(tag).join(', ')}${p.dupOf[k] !== undefined ? ' → ' + (p.dupOf[k] + 1) : ''}</span>`)).join('')}</div>` : ''}
+      ${skip.length ? `<p class="cc-h">${T('Bunları geç', 'Skip these')}</p><div class="cc-strip cc-skip">${skip.map(k => fig(k, `<span class="cc-tag">${p.flags[k].map(f => f === 'dup' ? tag(f) + ' ' + (p.dupOf[k] + 1) : tag(f)).join(' · ')}</span>`)).join('')}</div>` : ''}
       <p class="cc-note">${T('Viral olacağını kimse pikselden garanti edemez. Bu, akışta durdurma gücü en yüksek, net ve feed’ine uyan kareleri seçer.', 'No one can promise viral from pixels. This picks the frames with the most stopping power that are sharp and fit your feed.')} ${p.grid ? '' : T('Grid’ine fotoğraf eklersen feed uyumuna da bakar.', 'Add photos to your grid and it will check feed fit too.')}</p>
       ${action('pt-cc-shoot', T('Başka çekim seç', 'Check another shoot'), 'pill solid wide space')}`); }
 
