@@ -48,7 +48,10 @@
       /* 12x15 light map for spotting burst shots (same pose, same framing) */
       const lm = shrink(im, 12, 15).getContext('2d').getImageData(0, 0, 12, 15).data, map = []; for (let i = 0; i < lm.length; i += 4) map.push((.2126 * lm[i] + .7152 * lm[i + 1] + .0722 * lm[i + 2]) / 255);
       const mm = map.reduce((t, v) => t + v, 0) / map.length;
-      return { m: PTScore.measure(im), thumb: th(shrink(im, 160, Math.round(160 * ar))), big: th(shrink(big, 320, Math.round(320 * ar))), detail, map: map.map(v => v - mm) };
+      /* centre of the frame (where the person usually stands): tells outfits apart in front of the same backdrop */
+      const cw = Math.round(im.naturalWidth * .36), chh = Math.round(im.naturalHeight * .6), cc = document.createElement('canvas'); cc.width = Math.max(1, Math.min(400, cw)); cc.height = Math.max(1, Math.round(cc.width * chh / Math.max(1, cw)));
+      cc.getContext('2d').drawImage(shrink(im, Math.min(im.naturalWidth, 800), Math.round(Math.min(im.naturalWidth, 800) * ar)), Math.min(im.naturalWidth, 800) * .32, Math.min(im.naturalWidth, 800) * ar * .22, Math.min(im.naturalWidth, 800) * .36, Math.min(im.naturalWidth, 800) * ar * .6, 0, 0, cc.width, cc.height);
+      return { c: PTScore.measure(cc), m: PTScore.measure(im), thumb: th(shrink(im, 160, Math.round(160 * ar))), big: th(shrink(big, 320, Math.round(320 * ar))), detail, map: map.map(v => v - mm) };
     } finally { URL.revokeObjectURL(url); } }
 
   /* how hard a frame stops the scroll: punchy light contrast, some colour, and looking different from the rest */
@@ -151,21 +154,25 @@
     const keep = idx.filter(i => dupOf[i] === undefined && !flags[i].includes('blur')).sort((a, b) => score[b] - score[a]);
     const top = keep.length ? keep[0] : idx.slice().sort((a, b) => score[b] - score[a])[0];
     /* best carousel: start from the top frame, add the frame that keeps the set one family and scores best, up to 4 */
-    /* looks: one outfit / one location reads as one set of colours (background + clothes). average-linkage clustering on the
+    /* looks: one outfit / one location reads as one set of colours. the whole frame gives the backdrop, the centre (where the person
+       stands) gives the outfit, so two outfits in front of the same door are still told apart. average-linkage clustering on the
        slide distance; a carousel is built inside one look only, so two outfits are never mixed in one post */
-    const looks = (() => { let cl = idx.map(i => [i]); const dist = (A, B) => { let t = 0; A.forEach(i => B.forEach(j => t += near(ms[i], ms[j]))); return t / (A.length * B.length); };
+    const looks = (() => { let cl = idx.map(i => [i]); const ld = (i, j) => sl[i].c ? (near(ms[i], ms[j]) + 1.5 * near(sl[i].c, sl[j].c)) / 2.5 : near(ms[i], ms[j]), dist = (A, B) => { let t = 0; A.forEach(i => B.forEach(j => t += ld(i, j))); return t / (A.length * B.length); };
       for (;;){ let ba = -1, bb = -1, bd = 1e9; for (let a = 0; a < cl.length; a++) for (let b = a + 1; b < cl.length; b++){ const d = dist(cl[a], cl[b]); if (d < bd){ bd = d; ba = a; bb = b; } }
-        if (ba < 0 || bd > 3.2) break; cl[ba] = cl[ba].concat(cl[bb]); cl.splice(bb, 1); }
+        if (ba < 0 || bd > 1.9) break; cl[ba] = cl[ba].concat(cl[bb]); cl.splice(bb, 1); }
       return cl; })();
     const famMin = (typeof state !== 'undefined' && state.mode === 'personal') ? 6 : 7;
     const build = pool => { const p = pool.slice().sort((a, b) => score[b] - score[a]); if (p.length < 3) return null; const set = [p[0]];
       while (set.length < 4){ let bi = -1, bv = -1;
-        p.filter(i => !set.includes(i)).forEach(i => { const a = analyse([...set, i].map(k => ms[k])), v = score[i] / 100 + a.fam / 10 * 1.5; if ((set.length < 2 || a.fam >= famMin) && v > bv){ bv = v; bi = i; } });
+        p.filter(i => !set.includes(i) && set.every(k => near(ms[k], ms[i]) >= .8)).forEach(i => { const a = analyse([...set, i].map(k => ms[k])), v = score[i] / 100 + a.fam / 10 * 1.5; if ((set.length < 2 || a.fam >= famMin) && v > bv){ bv = v; bi = i; } });
         if (bi < 0) break; set.push(bi); }
       if (set.length < 3) return null; const a = analyse(set.map(k => ms[k])), ids = a.order.map(k => set[k]); return { ids, r: analyse(ids.map(k => ms[k])) }; };
-    const cars = looks.map(g => build(g.filter(i => keep.includes(i)))).filter(Boolean).sort((a, b) => b.r.total - a.r.total).slice(0, 2);
+    const built = looks.map(g => { const pool = g.filter(i => keep.includes(i)); return { pool, car: build(pool) }; });
+    const cars = built.map(x => x.car).filter(Boolean).sort((a, b) => b.r.total - a.r.total).slice(0, 2);
+    /* a look with enough sharp frames but no carousel: the frames are near copies of each other (same pose, same distance) */
+    const samey = built.filter(x => !x.car && x.pool.length >= 3).map(x => x.pool.slice().sort((a, b) => score[b] - score[a]).slice(0, 4));
     const lookOf = {}; looks.forEach((g, k) => g.forEach(i => lookOf[i] = k));
-    return { top, score, stopN, qual, fitN, flags, dupOf, keep, cars, looks: looks.length, grid: !!fitN };
+    return { top, score, stopN, qual, fitN, flags, dupOf, keep, cars, samey, looks: looks.length, grid: !!fitN };
   }
 
   function showShoot(p, sl){
@@ -181,6 +188,7 @@
       <div class="cc-hero-img"><img src="${sl[i].big}" alt=""><ul class="cc-why"><li><b>${i + 1}. ${T('kare', 'photo')} · ${p.score[i]}/100</b></li>${why.map(w => `<li>${w}</li>`).join('')}</ul></div>
       ${p.cars.length ? p.cars.map((c, k) => `<p class="cc-h">${p.cars.length > 1 ? T(`Karusel ${k + 1} · tek look · ${c.ids.length} kare, bu sırayla`, `Carousel ${k + 1} · one look · ${c.ids.length} photos, in this order`) : T(`En iyi karusel · ${c.ids.length} kare, bu sırayla`, `Best carousel · ${c.ids.length} photos, in this order`)}</p><div class="cc-strip">${c.ids.map(i => fig(i)).join('')}</div>
         <p class="cc-note" style="margin-top:6px">${T(`Karusel puanı ${c.r.total.toFixed(1)}/10.`, `Carousel score ${c.r.total.toFixed(1)}/10.`)}</p>`).join('') + (p.cars.length > 1 ? `<p class="cc-note">${T('Çekimde iki ayrı look var: aynı karusele karıştırma, iki ayrı post yap.', 'This shoot has two looks: don’t mix them in one carousel, make two posts.')}</p>` : '') : `<p class="cc-note">${T('Karusel için aynı look’tan en az 3 net kare çıkmadı.', 'There weren’t 3 sharp frames from one look for a carousel.')}</p>`}
+      ${p.samey.map(g => `<p class="cc-h">${T('Bu look karusel olmaz', 'This look won’t make a carousel')}</p><div class="cc-strip">${g.map(k => fig(k)).join('')}</div><p class="cc-note" style="margin-top:6px">${T('Kareler neredeyse aynı: aynı poz, aynı mesafe. Karusel için bir yakın plan, bir detay (ayakkabı, çanta, doku) ve bir farklı açı çek. Tek post için en iyisi: ', 'The frames are near copies: same pose, same distance. For a carousel, add a close-up, a detail (shoes, bag, texture) and a different angle. Best single from this look: ')}${g[0] + 1}.</p>`).join('')}
       ${ranked.length > 1 ? `<p class="cc-h">${T('Sıralama', 'Ranking')}</p><div class="cc-strip">${ranked.map(k => fig(k, `<span class="cc-tag">${p.score[k]}</span>`)).join('')}</div>` : ''}
       ${skip.length ? `<p class="cc-h">${T('Bunları geç', 'Skip these')}</p><div class="cc-strip cc-skip">${skip.map(k => fig(k, `<span class="cc-tag">${p.flags[k].map(f => f === 'dup' ? tag(f) + ' ' + (p.dupOf[k] + 1) : tag(f)).join(' · ')}</span>`)).join('')}</div>` : ''}
       <p class="cc-note">${T('Viral olacağını kimse pikselden garanti edemez. Bu, akışta durdurma gücü en yüksek, net ve feed’ine uyan kareleri seçer.', 'No one can promise viral from pixels. This picks the frames with the most stopping power that are sharp and fit your feed.')} ${p.grid ? '' : T('Grid’ine fotoğraf eklersen feed uyumuna da bakar.', 'Add photos to your grid and it will check feed fit too.')}</p>
