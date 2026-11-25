@@ -37,7 +37,7 @@
         'm-vibe-pick': '<circle cx="9" cy="10" r="5"/><circle cx="15" cy="10" r="5"/><circle cx="12" cy="15" r="5"/>'
       };
       const COPY = {
-        'pt-carousel-open': [T('Karusel puanı','Carousel score'), T('Paylaşmadan önce 10 üzerinden.','Out of 10, before you post.')],
+        'pt-carousel-open': [T('Karusel ve çekim','Carousel & shoot'), T('Karuseli puanla, çekimden en iyisini seç.','Score a carousel, pick the best shot.')],
         'm-shot': [T('Instagram grid’in','Your Instagram grid'), T('Ekran görüntüsünden puan ve vibe.','Score and vibe from a screenshot.')],
         'pt-booth-open': [T('Kabin','Booth'), T('Tekli, 3’lü ya da 4’lü şerit.','Single, 3 or 4 frame strip.')],
         'm-vibe-pick': [T('Hedef vibe','Target vibe'), T('Neyi çekeceğini söyler.','Tells you what to shoot.')]

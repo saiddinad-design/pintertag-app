@@ -1,10 +1,10 @@
-/* carousel check: score a carousel (2-20 slides) before posting. replaces the "today's pick" tile on home.
+/* carousel check: score a carousel (2-20 slides) before posting, or pick the best frames from a shoot (up to 40). replaces the "today's pick" tile on home.
    everything is measured on the device from light, colour and detail (PTScore.measure); nothing is uploaded.
    four parts, each out of 10: first slide (does it stop the scroll), one family (do the slides belong together),
    flow (no hard jumps, no twins side by side), last slide (a calm frame or a takeaway to end on).
    it cannot read text or captions, and says so. */
 (function(){
-  const MAX = 20;
+  const MAX = 20, SHOOT = 40;
   const css = `.cc-hero{display:flex;align-items:baseline;gap:6px;margin:4px 0 2px}.cc-hero b{font-size:56px;letter-spacing:-2.5px;line-height:1}.cc-hero span{font-size:20px;color:var(--muted)}
 .cc-verdict{font-size:16px;margin:0 0 18px}.cc-row{border:1px solid var(--line);border-radius:16px;padding:14px 14px 12px;margin-top:10px}
 .cc-row summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:15px}.cc-row summary::-webkit-details-marker{display:none}
@@ -12,10 +12,10 @@
 .cc-row p{font-size:14px;line-height:1.45;margin:10px 0 0;color:var(--muted)}.cc-row p.cc-fix{color:inherit;border-left:2px solid currentColor;padding-left:10px}
 .cc-strip{display:flex;gap:6px;overflow-x:auto;padding:4px 0 2px;scrollbar-width:none}.cc-strip figure{margin:0;flex:0 0 64px;position:relative}
 .cc-strip img{width:64px;height:80px;object-fit:cover;border-radius:8px;display:block}.cc-strip figcaption{position:absolute;left:4px;top:4px;background:rgba(0,0,0,.72);color:#fff;font-size:11px;font-weight:600;border-radius:99px;min-width:18px;height:18px;line-height:18px;text-align:center;padding:0 4px}
-.cc-h{font-size:13px;color:var(--muted);margin:22px 0 6px}.cc-note{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.4}`;
+.cc-h{font-size:13px;color:var(--muted);margin:22px 0 6px}.cc-hero-img{display:flex;gap:14px;align-items:flex-start;margin:4px 0 6px}.cc-hero-img img{width:132px;height:165px;object-fit:cover;border-radius:12px;flex:0 0 auto}.cc-why{margin:0;padding:0;list-style:none;font-size:14px;line-height:1.4}.cc-why li{margin:0 0 6px}.cc-why b{font-size:13px;font-weight:600}.cc-skip figure{opacity:.55}.cc-tag{display:block;font-size:10px;color:var(--muted);margin-top:3px;text-align:center;line-height:1.2}.cc-note{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.4}`;
   const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
-  document.body.insertAdjacentHTML('beforeend', '<input id="pt-cc-input" type="file" accept="image/*" multiple hidden>');
-  const input = document.getElementById('pt-cc-input');
+  document.body.insertAdjacentHTML('beforeend', '<input id="pt-cc-input" type="file" accept="image/*" multiple hidden><input id="pt-cc-shoot" type="file" accept="image/*" multiple hidden>');
+  const input = document.getElementById('pt-cc-input'), shootIn = document.getElementById('pt-cc-shoot');
   let last = null;
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -25,16 +25,30 @@
   const S = n => T(`${n}. kare`, `slide ${n}`);
 
   function intro(){
-    modal(T('karuseli puanla.', 'carousel check.'), `<p class="edit-subtitle">${T('Paylaşmadan önce karuselini 10 üzerinden puanla: ilk kare, bütünlük, akış ve son kare. Nasıl düzelteceğini de söyler.', 'Score your carousel out of 10 before you post: first slide, one family, flow and last slide. It tells you how to fix it, too.')}</p>
-      <p class="cc-note">${T(`Kareleri paylaşacağın sırayla seç, en fazla ${MAX}. Telefonunda ölçülür, hiçbir şey yüklenmez.`, `Pick the slides in posting order, up to ${MAX}. Measured on your phone; nothing is uploaded.`)}</p>
-      ${action('pt-cc-pick', T('Kareleri seç', 'Pick slides'), 'pill solid wide space')}`); }
+    modal(T('karusel ve çekim.', 'carousel & shoot.'), `<p class="edit-subtitle">${T('İki şey yapabilir: karuselini 10 üzerinden puanlar ya da bir çekimden en iyi kareleri seçer.', 'Two things: score a carousel out of 10, or pick the best frames from a shoot.')}</p>
+      ${action('pt-cc-pick', T('Karuseli puanla', 'Score a carousel'), 'pill solid wide space')}
+      <p class="cc-note">${T(`Kareleri paylaşacağın sırayla seç, en fazla ${MAX}.`, `Pick the slides in posting order, up to ${MAX}.`)}</p>
+      ${action('pt-cc-shoot', T('Çekimden en iyisini seç', 'Pick the best from a shoot'), 'pill wide space')}
+      <p class="cc-note">${T(`Çekimdeki tüm fotoğrafları seç, en fazla ${SHOOT}. Paylaşılacak tek kareyi ve en iyi 3-4'lü karuseli söyler. Telefonunda ölçülür, hiçbir şey yüklenmez.`, `Pick every photo from the shoot, up to ${SHOOT}. It tells you the one to post and the best 3-4 for a carousel. Measured on your phone; nothing is uploaded.`)}</p>`); }
 
+  /* shrink step by step (never more than 2x per step) so a 4000 px photo and a 400 px one are read alike */
+  function shrink(img, tw, th){ let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height, src = img;
+    while (w > tw * 2 || h > th * 2){ const c = document.createElement('canvas'); c.width = Math.max(tw, Math.round(w / 2)); c.height = Math.max(th, Math.round(h / 2));
+      c.getContext('2d').drawImage(src, 0, 0, w, h, 0, 0, c.width, c.height); src = c; w = c.width; h = c.height; }
+    const o = document.createElement('canvas'); o.width = tw; o.height = th; o.getContext('2d').drawImage(src, 0, 0, w, h, 0, 0, tw, th); return o; }
   async function load(file){
     const url = URL.createObjectURL(file);
     try { const im = new Image(); im.src = url; await im.decode();
-      const c = document.createElement('canvas'), w = 160, h = Math.round(160 * im.naturalHeight / im.naturalWidth) || 200; c.width = w; c.height = h;
-      c.getContext('2d').drawImage(im, 0, 0, w, h);
-      return { m: PTScore.measure(im), thumb: c.toDataURL('image/jpeg', .8) };
+      const ar = im.naturalHeight / im.naturalWidth || 1.25, th = c => c.toDataURL('image/jpeg', .82);
+      /* fine detail at 320 px: variance of the edge map. a missed focus or shaken frame reads far lower than its neighbours */
+      const big = shrink(im, 320, Math.round(320 * ar)), bx = big.getContext('2d').getImageData(0, 0, big.width, big.height).data, W = big.width, H = big.height, G = new Float32Array(W * H);
+      for (let i = 0, p = 0; i < bx.length; i += 4, p++) G[p] = .2126 * bx[i] + .7152 * bx[i + 1] + .0722 * bx[i + 2];
+      let s1 = 0, s2 = 0, nn = 0; for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++){ const i = y * W + x, l = 4 * G[i] - G[i - 1] - G[i + 1] - G[i - W] - G[i + W]; s1 += l; s2 += l * l; nn++; }
+      const detail = Math.sqrt(Math.max(0, s2 / nn - (s1 / nn) ** 2));
+      /* 12x15 light map for spotting burst shots (same pose, same framing) */
+      const lm = shrink(im, 12, 15).getContext('2d').getImageData(0, 0, 12, 15).data, map = []; for (let i = 0; i < lm.length; i += 4) map.push((.2126 * lm[i] + .7152 * lm[i + 1] + .0722 * lm[i + 2]) / 255);
+      const mm = map.reduce((t, v) => t + v, 0) / map.length;
+      return { m: PTScore.measure(im), thumb: th(shrink(im, 160, Math.round(160 * ar))), big: th(shrink(big, 320, Math.round(320 * ar))), detail, map: map.map(v => v - mm) };
     } finally { URL.revokeObjectURL(url); } }
 
   /* how hard a frame stops the scroll: punchy light contrast, some colour, and looking different from the rest */
@@ -113,6 +127,65 @@
       <p class="cc-note">${state.mode === 'personal' ? T('Kişisel hesap olarak puanlandı: daha çok çeşitliliğe izin verilir.', 'Scored as a personal account: more variety is allowed.') : T('Marka hesabı olarak puanlandı: bütünlük daha sıkı tutulur.', 'Scored as a brand account: one family is held tighter.')} ${T('Işık, renk ve detaydan ölçülür. Yazıları ve caption’ı okuyamaz; metnin gücünü sen değerlendir.', 'Measured from light, colour and detail. It can’t read your text or caption; judge the words yourself.')}</p>
       ${action('pt-cc-pick', T('Başka karusel puanla', 'Check another carousel'), 'pill solid wide space')}`); }
 
+  /* ---------- pick the best from a shoot ----------
+     not a viral prediction (nobody can promise that from pixels). it ranks every frame on three things we can measure:
+     stop power (light contrast and colour punch), craft (in focus compared with the rest of the shoot, not too dark or blown out)
+     and, when the grid has photos, how well it sits with the feed. burst shots of the same pose are grouped and only the best one stays. */
+  function shootPick(sl){
+    const n = sl.length, ms = sl.map(x => x.m), idx = ms.map((_, i) => i);
+    const med = sl.map(x => x.detail).sort((a, b) => a - b)[Math.floor(n / 2)] || 1;
+    const grid = (typeof simpleIds === 'function' ? simpleIds().slice(0, 9).map(simplePhoto) : []).filter(p => p && p.m && p.m.hist).map(p => p.m);
+    const stopRaw = ms.map(m => m.contrast * 2.2 + m.vivid * 1.2);
+    const rank = a => { const o = a.map((v, i) => [v, i]).sort((x, y) => x[0] - y[0]), r = []; o.forEach(([, i], k) => r[i] = n > 1 ? k / (n - 1) : 1); return r; };
+    const stopN = rank(stopRaw);
+    const flags = idx.map(() => []), qual = idx.map(i => { const m = ms[i], d = sl[i].detail / med; let q = clamp(d, 0, 1.2) / 1.2;
+      if (d < .6) flags[i].push('blur'); if (m.L < 18) { q -= .3; flags[i].push('dark'); } if (m.L > 88 && m.bwx > .3) { q -= .3; flags[i].push('bright'); } return clamp(q, 0, 1); });
+    const fitN = grid.length >= 3 ? ms.map(m => 1 - clamp((grid.reduce((t, g) => t + near(m, g), 0) / grid.length - 1.5) / 4, 0, 1)) : null;
+    const score = idx.map(i => Math.round(100 * (fitN ? .4 * stopN[i] + .4 * qual[i] + .2 * fitN[i] : .5 * stopN[i] + .5 * qual[i])));
+    /* burst groups: same framing (12x15 light map) and same colour */
+    const par = idx.slice(), find = i => par[i] === i ? i : (par[i] = find(par[i]));
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++){ const md = sl[i].map.reduce((t, v, k) => t + Math.abs(v - sl[j].map[k]), 0) / sl[i].map.length;
+      if (md < .055 && near(ms[i], ms[j]) < 1.5) par[find(j)] = find(i); }
+    const groups = {}; idx.forEach(i => (groups[find(i)] ||= []).push(i));
+    const dupOf = {}; Object.values(groups).forEach(g => { g.sort((a, b) => score[b] - score[a]); g.slice(1).forEach(i => { dupOf[i] = g[0]; flags[i].push('dup'); }); });
+    const keep = idx.filter(i => dupOf[i] === undefined && !flags[i].includes('blur')).sort((a, b) => score[b] - score[a]);
+    const top = keep.length ? keep[0] : idx.slice().sort((a, b) => score[b] - score[a])[0];
+    /* best carousel: start from the top frame, add the frame that keeps the set one family and scores best, up to 4 */
+    let set = keep.length ? [top] : [], famMin = (typeof state !== 'undefined' && state.mode === 'personal') ? 6 : 7;
+    while (set.length < 4){ let bi = -1, bv = -1;
+      keep.filter(i => !set.includes(i)).forEach(i => { const a = analyse([...set, i].map(k => ms[k])), v = score[i] / 100 + a.fam / 10 * 1.5; if ((set.length < 2 || a.fam >= famMin) && v > bv){ bv = v; bi = i; } });
+      if (bi < 0) break; set.push(bi); }
+    let car = null;
+    if (set.length >= 3){ const a = analyse(set.map(k => ms[k])); car = { ids: a.order.map(k => set[k]), r: analyse(a.order.map(k => ms[set[k]])) }; }
+    return { top, score, stopN, qual, fitN, flags, dupOf, keep, car, grid: !!fitN };
+  }
+
+  function showShoot(p, sl){
+    const i = p.top, why = [];
+    if (p.stopN[i] >= .75) why.push(T('Çekimdeki en güçlü kontrast ve renk: akışta durduran kare bu.', 'The strongest contrast and colour in the shoot: the frame that stops the scroll.'));
+    if (p.qual[i] >= .85) why.push(T('Benzerleri arasında en net olanı.', 'The sharpest of its look-alikes.'));
+    if (p.fitN && p.fitN[i] >= .7) why.push(T('Grid’indeki renklerle uyumlu; feed’e oturur.', 'Sits with the colours already on your grid.'));
+    if (!why.length) why.push(T('Netlik, ışık ve dikkat çekme dengesi en iyi olan kare.', 'The best balance of focus, light and stopping power in this shoot.'));
+    const tag = k => ({ blur: T('net değil', 'out of focus'), dark: T('çok karanlık', 'too dark'), bright: T('patlamış', 'blown out'), dup: T('benzeri daha iyi', 'better twin') })[k];
+    const fig = (k, extra = '') => `<figure><img src="${sl[k].thumb}" alt=""><figcaption>${k + 1}</figcaption>${extra}</figure>`;
+    const ranked = p.keep.slice(0, 12), skip = sl.map((_, k) => k).filter(k => p.flags[k].length);
+    modal(T('çekimin en iyisi.', 'best of your shoot.'), `<p class="cc-h" style="margin-top:0">${T('Bunu paylaş', 'Post this one')}</p>
+      <div class="cc-hero-img"><img src="${sl[i].big}" alt=""><ul class="cc-why"><li><b>${i + 1}. ${T('kare', 'photo')} · ${p.score[i]}/100</b></li>${why.map(w => `<li>${w}</li>`).join('')}</ul></div>
+      ${p.car ? `<p class="cc-h">${T(`En iyi karusel (${p.car.ids.length} kare, bu sırayla)`, `Best carousel (${p.car.ids.length} photos, in this order)`)}</p><div class="cc-strip">${p.car.ids.map(k => fig(k)).join('')}</div>
+        <p class="cc-note" style="margin-top:6px">${T(`Karusel puanı ${p.car.r.total.toFixed(1)}/10.`, `Carousel score ${p.car.r.total.toFixed(1)}/10.`)} ${p.car.r.fam >= 8 ? T('Kareler aynı aileden.', 'The photos sit in one family.') : ''}</p>` : `<p class="cc-note">${T('Karusel için birbirine uyan en az 3 net kare çıkmadı.', 'There weren’t 3 sharp frames that work together for a carousel.')}</p>`}
+      ${ranked.length > 1 ? `<p class="cc-h">${T('Sıralama', 'Ranking')}</p><div class="cc-strip">${ranked.map(k => fig(k, `<span class="cc-tag">${p.score[k]}</span>`)).join('')}</div>` : ''}
+      ${skip.length ? `<p class="cc-h">${T('Bunları geç', 'Skip these')}</p><div class="cc-strip cc-skip">${skip.map(k => fig(k, `<span class="cc-tag">${p.flags[k].map(tag).join(', ')}${p.dupOf[k] !== undefined ? ' → ' + (p.dupOf[k] + 1) : ''}</span>`)).join('')}</div>` : ''}
+      <p class="cc-note">${T('Viral olacağını kimse pikselden garanti edemez. Bu, akışta durdurma gücü en yüksek, net ve feed’ine uyan kareleri seçer.', 'No one can promise viral from pixels. This picks the frames with the most stopping power that are sharp and fit your feed.')} ${p.grid ? '' : T('Grid’ine fotoğraf eklersen feed uyumuna da bakar.', 'Add photos to your grid and it will check feed fit too.')}</p>
+      ${action('pt-cc-shoot', T('Başka çekim seç', 'Check another shoot'), 'pill solid wide space')}`); }
+
+  shootIn.addEventListener('change', async () => {
+    const all = [...shootIn.files].filter(f => /^image\//.test(f.type)), files = all.slice(0, SHOOT); shootIn.value = '';
+    if (files.length < 2){ toast(T('En az 2 fotoğraf seç.', 'Pick at least 2 photos.')); return; }
+    if (all.length > SHOOT) toast(T(`İlk ${SHOOT} fotoğraf alındı.`, `Took the first ${SHOOT} photos.`));
+    const sl = []; for (let k = 0; k < files.length; k++){ modal(T('çekim okunuyor.', 'reading your shoot.'), `<p class="edit-subtitle">${T(`${k + 1}/${files.length} fotoğraf ölçülüyor…`, `Measuring photo ${k + 1} of ${files.length}…`)}</p>`); try { sl.push(await load(files[k])); } catch (e) {} }
+    if (sl.length < 2){ modal(T('fotoğraflar açılamadı.', 'couldn’t open the photos.'), `<p class="edit-subtitle">${T('JPG ya da PNG olarak tekrar dene.', 'Try again with JPG or PNG photos.')}</p>${action('pt-cc-shoot', T('Tekrar seç', 'Pick again'), 'pill solid wide space')}`); return; }
+    showShoot(shootPick(sl), sl); });
+
   input.addEventListener('change', async () => {
     const files = [...input.files].filter(f => /^image\//.test(f.type)).slice(0, MAX); input.value = '';
     if (files.length < 2){ toast(T('En az 2 kare seç.', 'Pick at least 2 slides.')); return; }
@@ -124,6 +197,7 @@
 
   document.addEventListener('click', e => { const b = e.target.closest('[data-action]'); if (!b) return; const a = b.dataset.action;
     if (a === 'pt-carousel-open'){ e.stopPropagation(); intro(); }
-    if (a === 'pt-cc-pick') input.click(); });
-  window.PTCarousel = { analyse, intro };
+    if (a === 'pt-cc-pick') input.click();
+    if (a === 'pt-cc-shoot') shootIn.click(); });
+  window.PTCarousel = { analyse, intro, shootPick };
 })();
