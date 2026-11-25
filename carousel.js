@@ -51,9 +51,14 @@
     let hook = clamp(Math.round(2 + (hr[0] - .45) / .55 * 8), 2, 10);
     const hookSwap = best !== 0 && hr[best] > hr[0] + .15; if (hookSwap) hook = Math.min(hook, 7);
     /* 2. one family */
-    /* spread of light, colour strength, warmth and calm-vs-busy across the slides (fitted on real carousels and random mixes) */
-    const spread = (sdv(ms.map(m => m.L)) / 12 + sdv(ms.map(m => m.sat)) / .08 + sdv(ms.map(m => m.warm)) / .06 + sdv(ms.map(m => m.flat || 0)) / .2) / 4;
-    const fam = clamp(Math.round(10 - (spread - .55) * 8), 2, 10);
+    /* nov 25: fitted on 116 sets: 54 curated boards and brand grids (good) against 62 random mixes of the same frames (bad).
+       three signals separate them (leave-one-out AUC 0.90): how many unrelated hue families, how much the warmth jumps,
+       and how much calm frames are mixed with busy ones. light level spread did not matter. */
+    const P = [0,0,0,0,0,0,0,0]; let pt = 1e-9; ms.forEach(m => m.hist.forEach((v, k) => { P[k] += v * m.sat; pt += v * m.sat; }));
+    const ent = -P.map(v => v / pt).filter(v => v > 0).reduce((t, q) => t + q * Math.log(q), 0) / Math.log(8);
+    const zf = { hue: (ent - .6309) / .1369, warm: (sdv(ms.map(m => m.warm)) - .0427) / .0279, busy: (sdv(ms.map(m => m.sharp)) - .0415) / .0176 };
+    const famP = 1 / (1 + Math.exp(-(-1.29 * zf.hue - 1.03 * zf.warm - .91 * zf.busy - .25)));
+    const fam = clamp(Math.round(2 + 8 * famP), 2, 10), famWhy = ['hue', 'warm', 'busy'].reduce((a, k) => zf[k] * ({ hue: 1.29, warm: 1.03, busy: .91 })[k] > zf[a] * ({ hue: 1.29, warm: 1.03, busy: .91 })[a] ? k : a, 'hue');
     const avgD = idx.map(i => idx.filter(k => k !== i).reduce((t, k) => t + near(ms[i], ms[k]), 0) / (n - 1));
     const med = avgD.slice().sort((a, b) => a - b)[Math.floor(n / 2)], odd = idx.reduce((a, b) => avgD[b] > avgD[a] ? b : a, 0);
     const famOdd = n > 2 && avgD[odd] > med * 1.35 && avgD[odd] > 3 ? odd : -1;
@@ -61,7 +66,9 @@
     const steps = idx.slice(1).map(i => near(ms[i - 1], ms[i]));
     const jumps = steps.map((d, k) => d > 5 ? k + 1 : -1).filter(k => k > 0), twins = steps.map((d, k) => d < .8 ? k + 1 : -1).filter(k => k > 0);
     const pen = steps.reduce((t, d) => t + Math.max(0, d - 3.5) * .8 + (d < .8 ? 1.2 : 0), 0) / Math.max(1, steps.length);
-    const flow = clamp(Math.round(10 - pen * 4.5), 2, 10);
+    /* the same photo twice anywhere in the set (not only side by side) */
+    const dups = []; for (let i = 0; i < n; i++) for (let j = i + 2; j < n; j++) if (near(ms[i], ms[j]) < .5) dups.push([i + 1, j + 1]);
+    let flow = clamp(Math.round(10 - pen * 4.5), 2, 10); if (jumps.length || twins.length || dups.length) flow = Math.min(flow, 7);
     /* 4. last slide */
     const er = ms.map(endRaw), endBest = idx.slice(1).reduce((a, b) => er[b] > er[a] ? b : a, n - 1);
     let end = clamp(Math.round(3 + er[n - 1] * 7), 2, 10); const endSwap = endBest !== n - 1 && er[endBest] > er[n - 1] + .2;
@@ -71,11 +78,11 @@
     while (left.size){ const cur = ms[order[order.length - 1]]; let pick = -1, bd = 1e9;
       left.forEach(i => { const d = Math.abs(near(cur, ms[i]) - 2.5); if (d < bd){ bd = d; pick = i; } }); order.push(pick); left.delete(pick); }
     if (lastI >= 0) order.push(lastI);
-    /* one family counts a little more: a mixed set is what makes a carousel look random */
-    const total = Math.round((hook + fam * 1.5 + flow + end) / 4.5 * 10) / 10;
-    return { n, hook, hookSwap, best, fam, famOdd, flow, jumps, twins, end, endSwap, endBest, order, total, changed: order.some((v, i) => v !== i) }; }
+    /* one family carries half the score: in the fit it was the only part that told curated sets from random mixes */
+    const total = Math.round((hook + fam * 3 + flow + end) / 6 * 10) / 10;
+    return { n, hook, hookSwap, best, fam, famWhy, famOdd, dups, flow, jumps, twins, end, endSwap, endBest, order, total, changed: order.some((v, i) => v !== i) }; }
 
-  function verdict(t, low){ return t >= 8.5 && low >= 7 ? T('Paylaşmaya hazır.', 'Ready to post.') : t >= 7 ? T('Güçlü. Bir iki dokunuş kaldı.', 'Strong. One or two touches away.') : t >= 5 ? T('Kareler iyi, henüz birlikte çalışmıyor.', 'Good slides, not working together yet.') : T('Bu haliyle kaydırılıp geçilir.', 'As it is, people will scroll past.'); }
+  function verdict(t, low){ return t >= 8.5 && low >= 8 ? T('Paylaşmaya hazır.', 'Ready to post.') : t >= 7 ? T('Güçlü. Bir iki dokunuş kaldı.', 'Strong. One or two touches away.') : t >= 5 ? T('Kareler iyi, henüz birlikte çalışmıyor.', 'Good slides, not working together yet.') : T('Bu haliyle kaydırılıp geçilir.', 'As it is, people will scroll past.'); }
 
   function row(title, score, why, fix, open){
     return `<details class="cc-row"${open ? ' open' : ''}><summary><span>${title}</span><span>${score}/10</span></summary><div class="cc-bar"><i style="width:${score * 10}%"></i></div><p>${why}</p>${fix ? `<p class="cc-fix">${fix}</p>` : ''}</details>`; }
@@ -84,10 +91,11 @@
     const hookWhy = r.hookSwap ? T('Kapağın fena değil ama içeride daha çok durduran bir kare var.', 'Your cover works, but there is a slide inside that stops the scroll harder.') : r.hook >= 8 ? T('İlk kare güçlü: ışık kontrastı ve renk dikkat çekiyor.', 'The first slide is strong: its light contrast and colour grab attention.') : T('İlk kare akışta kaybolabilir: kontrastı düşük ya da diğerlerine çok benziyor.', 'The first slide can get lost in the feed: low contrast, or too similar to the rest.');
     const hookFix = r.hookSwap ? T(`${r.best + 1}. kareyi başa al. En çok durduran kare o.`, `Move ${S(r.best + 1)} to the front. It is the one that stops the scroll.`) : r.hook < 7 ? T('Kapak için daha net, daha kontrastlı bir kare seç ya da ilk kareyi yakından kadrajla.', 'Pick a sharper, higher-contrast frame for the cover, or crop the first slide closer.') : '';
     const famWhy = r.famOdd >= 0 ? T('Karelerin çoğu aynı renk ailesinde, biri hariç.', 'Most slides sit in one colour family, except one.') : r.fam >= 7 ? T('Kareler aynı renk ailesinde, tek bir hikâye gibi duruyor.', 'The slides sit in one colour family and read as one story.') : T('Renkler ve ışık kareden kareye çok değişiyor.', 'Colour and light change a lot from slide to slide.');
-    const famFix = r.famOdd >= 0 ? T(`${S(r.famOdd + 1)} ailenin dışında kalıyor. Rengini diğerlerine yaklaştır ya da çıkar.`, `${S(r.famOdd + 1)} breaks the family. Edit its colour closer to the others, or drop it.`) : r.fam < 7 ? T('Hepsine aynı düzenlemeyi uygula: aynı sıcaklık, aynı kontrast.', 'Give every slide the same edit: same warmth, same contrast.') : '';
-    const flowWhy = r.flow >= 8 ? T('Her kare bir sonrakine yumuşak geçiyor.', 'Each slide hands over smoothly to the next.') : T('Akışta sert geçişler ya da yan yana ikiz kareler var.', 'The flow has hard jumps or near-twins side by side.');
+    const famFix = r.famOdd >= 0 ? T(`${S(r.famOdd + 1)} ailenin dışında kalıyor. Rengini diğerlerine yaklaştır ya da çıkar.`, `${S(r.famOdd + 1)} breaks the family. Edit its colour closer to the others, or drop it.`) : r.fam < 7 ? ({ hue: T('Çok fazla renk ailesi var. Bir ana renk ve bir vurgu rengiyle sınırla.', 'Too many colour families. Keep to one main colour and one accent.'), warm: T('Sıcaklık kareden kareye zıplıyor. Hepsine aynı beyaz dengesini ver.', 'Warmth jumps from slide to slide. Give them all the same white balance.'), busy: T('Sakin ve kalabalık kareler karışık. Ya hepsini sadeleştir ya kalabalığı bir iki kareyle sınırla.', 'Calm and busy slides are mixed. Simplify them, or keep the busy ones to one or two.') })[r.famWhy] : '';
+    const flowWhy = r.flow >= 8 && !r.jumps.length && !r.twins.length && !r.dups.length ? T('Her kare bir sonrakine yumuşak geçiyor.', 'Each slide hands over smoothly to the next.') : T('Akışta sert geçişler ya da yan yana ikiz kareler var.', 'The flow has hard jumps or near-twins side by side.');
     const flowFix = [r.jumps.length ? T(`${r.jumps.map(k => `${k}→${k + 1}`).join(', ')} arası sert bir geçiş.`, `Hard jump between ${r.jumps.map(k => `${k}→${k + 1}`).join(', ')}.`) : '',
-      r.twins.length ? T(`${r.twins.map(k => `${k} ve ${k + 1}`).join(', ')} neredeyse aynı; birini çıkar ya da araya başka kare koy.`, `${r.twins.map(k => `${k} and ${k + 1}`).join(', ')} are near-twins; drop one or put another slide between them.`) : ''].filter(Boolean).join(' ');
+      r.twins.length ? T(`${r.twins.map(k => `${k} ve ${k + 1}`).join(', ')} neredeyse aynı; birini çıkar ya da araya başka kare koy.`, `${r.twins.map(k => `${k} and ${k + 1}`).join(', ')} are near-twins; drop one or put another slide between them.`) : '',
+      r.dups.length ? T(`${r.dups.map(([a, b]) => `${a} ve ${b}`).join(', ')} aynı fotoğraf gibi; birini çıkar.`, `${r.dups.map(([a, b]) => `${a} and ${b}`).join(', ')} look like the same photo; drop one.`) : ''].filter(Boolean).join(' ');
     const endWhy = r.end >= 7 ? T('Son kare sakin ya da net bir mesajla kapanıyor; kaydetmek için iyi bir an.', 'The last slide closes calmly or with a clear takeaway: a good moment to save.') : T('Son kare yoğun; karusel bitmiş gibi hissettirmiyor.', 'The last slide is busy; the carousel doesn’t feel finished.');
     const endFix = r.endSwap ? T(`${S(r.endBest + 1)} ile bitir: daha sakin, daha iyi bir kapanış.`, `End on ${S(r.endBest + 1)}: calmer, a better close.`) : r.end < 7 ? T('Sonuna boşluğu bol bir kare ya da tek cümlelik bir özet kare ekle.', 'Add a closing slide with lots of empty space, or a one-line takeaway.') : '';
     const strip = ids => `<div class="cc-strip">${ids.map(i => `<figure><img src="${slides[i].thumb}" alt=""><figcaption>${i + 1}</figcaption></figure>`).join('')}</div>`;
