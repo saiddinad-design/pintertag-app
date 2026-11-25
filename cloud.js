@@ -108,6 +108,7 @@
       <button type="button" class="cl-link" data-action="cl-back">${tr('Başka e-posta kullan', 'Use another email')}</button></form>`);
     modal(tr('ücretsiz hesap.', 'free account.'), `<form class="cl-sheet" id="cl-mail-form"><p class="cl-lead">${tr('Planın kaybolmasın. E-postanla gir; grid’in, planların ve fotoğrafların hesabında yedeklensin, başka telefonda da açılsın.', 'Don’t lose your plan. Sign in with your email; your grid, plans and photos are backed up and open on any phone.')}</p>
       <input class="cl-input" name="email" type="email" autocomplete="email" inputmode="email" placeholder="${tr('e-posta adresin', 'your email')}" required>
+      <label class="m-check"><input type="checkbox" name="consent" required><span>${tr('Planımın ve fotoğraflarımın yedeğinin AB’deki (İrlanda) sunucuda saklanmasına açık rıza veriyorum.', 'I consent to my plan and photos being backed up on a server in the EU (Ireland).')}</span></label>
       <label class="m-check"><input type="checkbox" name="mk"><span>${tr('Yeni özellik ve ipuçlarını e-postayla almak istiyorum.', 'Email me new features and tips.')}</span></label>
       <button class="pill solid wide" type="submit">${tr('Kod gönder', 'Send code')}</button>
       <p class="cl-note">${tr('Şifre yok. Ücretsiz. Devam edersen ', 'No password. Free. By continuing you accept the ')}<button type="button" class="cl-link" data-action="m-legal" data-doc="privacy">${tr('gizlilik metnini', 'privacy notice')}</button>${tr(' kabul etmiş olursun.', '.')}</p></form>`); }
@@ -151,7 +152,7 @@
   document.addEventListener('submit', async e => { const f = e.target; if (!f || !/^cl-/.test(f.id)) return; e.preventDefault();
     const btn = f.querySelector('[type=submit]'); if (btn) btn.disabled = true;
     try { await client();
-      if (f.id === 'cl-mail-form'){ const email = f.elements.email.value.trim().toLowerCase(); setMeta({ marketing: !!f.elements.mk.checked });
+      if (f.id === 'cl-mail-form'){ const email = f.elements.email.value.trim().toLowerCase(); setMeta({ marketing: !!f.elements.mk.checked, consent: Date.now() });
         const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: location.origin + location.pathname } });
         if (error) throw error; sentTo = email; sheet(); setTimeout(() => document.querySelector('.cl-code')?.focus(), 60); }
       if (f.id === 'cl-code-form'){ const token = f.elements.code.value.replace(/\D/g, '');
