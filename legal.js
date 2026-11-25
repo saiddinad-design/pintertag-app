@@ -2,6 +2,7 @@
 window.PTLegal = {
   updated: '22.11.2026',
   draft: 'Taslak metin. Yayından önce hukukçu kontrolünden geçecek; köşeli parantezli bilgiler doldurulacak.',
+  draftEn: 'Draft. A lawyer will review this before launch; details in [brackets] are still to be filled in.',
   privacy: { tr: 'Gizlilik Politikası', en: 'Privacy Policy', sections: [
     ['Kısaca', 'Fotoğrafların senindir. Pintertag onları senin telefonunda işler ve telefonunda saklar. Instagram şifreni istemeyiz, Instagram hesabına bağlanmayız, reklam için veri toplamayız ve verini satmayız.'],
     ['Veri sorumlusu', '[Şirket unvanı], [adres]. İletişim: [iletişim e-postası].'],
@@ -14,6 +15,19 @@ window.PTLegal = {
     ['Hakların', 'KVKK m.11 uyarınca verilerinin işlenip işlenmediğini öğrenme, bilgi isteme, düzeltme, silme, aktarıldığı kişileri öğrenme, itiraz etme ve zararın giderilmesini isteme hakkın var. Ayarlar > Hesap’tan verilerini indirebilir ve hesabını silebilirsin. Diğer talepler için: [iletişim e-postası]. 30 gün içinde yanıtlarız.'],
     ['Yaş sınırı', 'Pintertag 13 yaşından küçükler için değildir.'],
     ['Değişiklikler', 'Bu politikayı değiştirirsek uygulamada haber veririz. Önemli değişikliklerde onayını yeniden isteriz.']
+  ],
+  enSections: [
+    ['In short', 'Your photos are yours. Pintertag processes and stores them on your phone. We never ask for your Instagram password, we do not connect to your Instagram account, we do not collect data for ads and we do not sell your data.'],
+    ['Data controller', '[Company name], [address]. Contact: [contact email].'],
+    ['What we process', '• Account: your name, email address and sign-in method (email, Apple or Google).\n• Content: the photos you add, your grid order, plans, captions and notes.\n• Subscription: your plan, trial start and AI credit use. Your card details never reach us; payment is handled by the App Store or Google Play.\n• Preferences: language, theme, account type.\n• Support: your messages if you write to us.'],
+    ['Where your photos live', 'Your photos and plans are kept on your device, in the browser’s or the app’s own storage. If you sign in with a free account, your grid, plans and photos (except Reels videos) are also backed up to your account; only you can see them, and they come back when you sign in on another phone with the same email. If you do not sign in, nothing leaves your device. Profile screenshots you upload for a grid score are processed on your device only and are never sent anywhere. Sharing happens through your phone’s share menu, by you; Pintertag never posts to Instagram on your behalf.'],
+    ['AI labelling', 'If you turn it on, a single sheet of small previews of your photos is sent to our AI provider [provider name, country] to identify what each frame shows (person, detail, product, place…). The result is labels only. We do not use these previews for ads or anything else. Because the provider is abroad, this feature needs your explicit consent; you can turn it off any time in Settings > Privacy. When it is off, you pick the types yourself and ordering looks at light and colour.'],
+    ['Tracking and ads', 'The app has no third-party ad or tracking tools. We do not follow you across other apps and sites.'],
+    ['Who we share with', 'Only providers needed to run the service: account and backup (Supabase, servers in the EU/Ireland), site hosting (GitHub Pages), AI labelling [provider], payment (App Store / Google Play). Transfers abroad follow Article 9 of Turkey’s data protection law (KVKK). We share with no one else unless the law requires it.'],
+    ['How long we keep it', 'Data on your device stays there until you delete it. When you tap “Delete my account” in Settings, your cloud plans and photos are deleted immediately and your account record permanently. If you opted in to emails, you can withdraw that from the same screen; records we must keep by law (e.g. invoices) are kept for the required period.'],
+    ['Your rights', 'Under Article 11 of KVKK (and the GDPR where it applies) you can ask whether your data is processed, request information, correction or deletion, learn who it was shared with, object, and claim compensation for damage. You can download your data and delete your account in Settings > Account. For other requests: [contact email]. We reply within 30 days.'],
+    ['Age limit', 'Pintertag is not for children under 13.'],
+    ['Changes', 'If we change this policy we will tell you in the app. For important changes we will ask for your consent again.']
   ]},
   terms: { tr: 'Kullanım Koşulları', en: 'Terms of Use', sections: [
     ['Hizmet', 'Pintertag, Instagram feed’ini planlamana yardım eden bir araçtır: fotoğraflarını sıralar, grid’ini puanlar, paylaşım planı ve hatırlatma hazırlar. Öneriler tavsiye niteliğindedir; son karar senindir.'],
@@ -28,6 +42,20 @@ window.PTLegal = {
     ['Fesih', 'Hesabını istediğin an silebilirsin. Bu koşulları ağır biçimde ihlal eden hesapları kapatabiliriz.'],
     ['Uygulanacak hukuk', 'Türkiye Cumhuriyeti hukuku uygulanır. Tüketici uyuşmazlıklarında tüketici hakem heyetleri ve tüketici mahkemeleri, diğerlerinde İstanbul mahkemeleri yetkilidir.'],
     ['İletişim', '[Şirket unvanı] · [adres] · [iletişim e-postası]']
+  ],
+  enSections: [
+    ['The service', 'Pintertag is a tool that helps you plan your Instagram feed: it orders your photos, scores your grid and prepares posting plans and reminders. Suggestions are advice; the final decision is yours.'],
+    ['Relationship with Instagram', 'Pintertag is not affiliated with, endorsed by or connected to Instagram or Meta. Instagram is a trademark of Meta Platforms, Inc.'],
+    ['Your account', 'You are responsible for keeping your account details accurate and your device secure. You can also try Pintertag without an account; then your data stays on that device only.'],
+    ['Your content', 'You own the photos and text you upload. You give us only the limited, revocable permission needed to run the service. Do not upload content you do not have the rights to.'],
+    ['Pro subscription', '• The 7-day free trial is given once per account.\n• When the trial ends you are charged automatically for the plan you chose (monthly or yearly); cancel at least 24 hours before the trial ends and you will not be charged.\n• The subscription renews for the same period and price unless cancelled at least 24 hours before the period ends.\n• Cancel and manage: on the App Store in Settings > Apple ID > Subscriptions; on Google Play in Subscriptions. Cancelling takes effect at the end of the current period.\n• Prices include VAT. We will tell you about price changes in advance.\n• Refunds follow App Store / Google Play policies.'],
+    ['Right of withdrawal', 'Pro is a digital service delivered immediately. Under Turkish distance-contract rules (Art. 15/1-ğ), the right of withdrawal does not apply once you start the subscription. If you cancel during the trial you pay nothing.'],
+    ['AI credits', 'AI labelling uses credits: each labelled photo is 1 credit. The free plan has 20 credits a month, Pro has 500. Credits renew monthly, do not roll over, cannot be transferred and cannot be exchanged for cash.'],
+    ['Prohibited use', 'You may not use the service for illegal purposes, with content that infringes others’ rights, or through automated means that overload the system.'],
+    ['Liability', 'We provide the service “as is”. We do not guarantee it will run without interruption or errors. We recommend backing up data stored on your device (Settings > Backup). Cases where liability cannot be limited by law are reserved.'],
+    ['Termination', 'You can delete your account at any time. We may close accounts that seriously breach these terms.'],
+    ['Governing law', 'The laws of the Republic of Türkiye apply. Consumer disputes go to consumer arbitration committees and consumer courts; other disputes to the courts of Istanbul. Mandatory consumer rights of your own country are not affected.'],
+    ['Contact', '[Company name] · [address] · [contact email]']
   ]},
   kvkk: { tr: 'KVKK Aydınlatma Metni', en: 'KVKK Notice (Turkey)', sections: [
     ['Veri sorumlusu', '6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) kapsamında veri sorumlusu [Şirket unvanı]’dır ([adres], [iletişim e-postası]).'],
@@ -37,5 +65,14 @@ window.PTLegal = {
     ['Aktarım', 'Hizmetin sunulması için barındırma, AI etiketleme ve ödeme hizmeti sağlayıcılarına; yasal zorunluluk halinde yetkili kurumlara. AI sağlayıcısı yurt dışında olduğundan bu aktarım açık rızana dayanır.'],
     ['Hakların (m.11)', 'Kişisel verilerinin işlenip işlenmediğini öğrenme, işlenmişse bilgi talep etme, amacına uygun kullanılıp kullanılmadığını öğrenme, yurt içinde ya da dışında aktarıldığı üçüncü kişileri bilme, eksik ya da yanlışsa düzeltilmesini, silinmesini ya da yok edilmesini isteme, bu işlemlerin aktarılan kişilere bildirilmesini isteme, otomatik sistemlerle analiz sonucu aleyhine bir sonuç çıkmasına itiraz etme ve zararın giderilmesini talep etme.'],
     ['Başvuru', 'Taleplerini [iletişim e-postası] adresine iletebilirsin. En geç 30 gün içinde ücretsiz yanıtlanır. Yanıtı yeterli bulmazsan Kişisel Verileri Koruma Kurulu’na şikâyet hakkın vardır.']
+  ],
+  enSections: [
+    ['Data controller', 'Under Turkey’s Personal Data Protection Law No. 6698 (KVKK), the data controller is [Company name] ([address], [contact email]).'],
+    ['Data and purposes', '• Identity and contact (name, email): to create your account and contact you.\n• Transaction security and subscription (plan, trial and credit records): to run the service and payments.\n• Visual content (photo previews): only when you turn on AI labelling, to identify photo types.\n• Marketing (optional): only with your permission, to send news and offers.'],
+    ['Legal grounds', 'Forming and performing the contract (Art. 5/2-c), legal obligation (Art. 5/2-ç), legitimate interest (Art. 5/2-f). Explicit consent (Art. 5/1, Art. 9) for AI labelling, which involves a transfer abroad, and for marketing messages.'],
+    ['How we collect it', 'Data is collected electronically through the app, from the information you enter.'],
+    ['Transfers', 'To hosting, AI labelling and payment providers to run the service; to authorities when the law requires it. Because the AI provider is abroad, that transfer relies on your explicit consent.'],
+    ['Your rights (Art. 11)', 'To learn whether your personal data is processed and request information about it; to learn its purpose and whether it is used accordingly; to know the third parties it was shared with in Turkey or abroad; to ask for correction if it is incomplete or wrong, and for deletion or destruction; to ask that these steps be notified to those it was shared with; to object to an outcome against you produced only by automated analysis; and to claim compensation for damage.'],
+    ['How to apply', 'Send your request to [contact email]. We reply free of charge within 30 days at the latest. If you are not satisfied with the reply, you can complain to the Turkish Personal Data Protection Board.']
   ]}
 };

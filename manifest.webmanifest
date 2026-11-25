@@ -1,8 +1,8 @@
 {
  "name": "Pintertag",
  "short_name": "Pintertag",
- "description": "Feed'inin sanat yönetmeni",
- "lang": "tr",
+ "description": "Your feed’s art director",
+ "lang": "en",
  "start_url": "./index.html?source=homescreen",
  "scope": "./",
  "display": "standalone",
