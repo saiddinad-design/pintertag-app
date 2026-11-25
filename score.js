@@ -2,8 +2,21 @@
 (function(){
   const MC = document.createElement('canvas'); MC.width = MC.height = 48; const mx = MC.getContext('2d', { willReadFrequently: true });
   const XC = document.createElement('canvas'); XC.width = XC.height = 96; const xx = XC.getContext('2d', { willReadFrequently: true });
+  /* nov 25: the models were calibrated with <img> elements, which Chrome shrinks with a smooth (mipmapped) filter. canvases and
+     ImageBitmaps (full-size uploads, Instagram originals) are shrunk with a plain filter that aliases: the same photo read twice as
+     "busy" and an Instagram grid scored 12 instead of ~60. so every source is shrunk step by step (never more than 2x per step),
+     which reproduces the smooth filter whatever the source type or size (checked: same tile as <img>, bitmap or 3x canvas
+     reads within ~5% of the calibration value). */
+  const SA = document.createElement('canvas'), SB = document.createElement('canvas');
+  function shrinkTo(img, size, ctx){
+    let w = img.naturalWidth || img.videoWidth || img.width, h = img.naturalHeight || img.videoHeight || img.height;
+    if (!w || !h){ ctx.clearRect(0,0,size,size); ctx.drawImage(img, 0, 0, size, size); return; }
+    let src = img, flip = false;
+    while (w > size * 2 || h > size * 2){ const nw = Math.max(size, Math.round(w / 2)), nh = Math.max(size, Math.round(h / 2)), c = flip ? SB : SA;
+      c.width = nw; c.height = nh; const x = c.getContext('2d'); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'low'; x.drawImage(src, 0, 0, w, h, 0, 0, nw, nh); src = c; w = nw; h = nh; flip = !flip; }
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'low'; ctx.clearRect(0,0,size,size); ctx.drawImage(src, 0, 0, w, h, 0, 0, size, size); }
   function measure(img){
-    mx.clearRect(0,0,48,48); mx.drawImage(img, 0, 0, 48, 48);
+    shrinkTo(img, 48, mx);
     const d = mx.getImageData(0,0,48,48).data, L = new Float32Array(48*48);
     let r=0,g=0,b=0,s=0,ls=0,ls2=0,vv=0;
     for (let i=0,p=0;i<d.length;i+=4,p++){ const R=d[i]/255,G=d[i+1]/255,B=d[i+2]/255; r+=R;g+=G;b+=B;
@@ -19,7 +32,7 @@
       Ls[p]=L; Lsum+=L; aS+=A; Ct+=C; const h=Math.floor((Math.atan2(Bb,A)+Math.PI)/(2*Math.PI)*8)%8; hist[h]+=C; }
     const sorted = Array.from(Ls).sort((x,y)=>x-y);
     /* v3 (nov 23): 96px detail map. flat = share of calm, empty surface; bwx = crushed black / blown white; txt = hard black-on-white strokes (captions, headlines, screenshots) */
-    xx.clearRect(0,0,96,96); xx.drawImage(img, 0, 0, 96, 96); const e = xx.getImageData(0,0,96,96).data, Y = new Float32Array(9216);
+    shrinkTo(img, 96, xx); const e = xx.getImageData(0,0,96,96).data, Y = new Float32Array(9216);
     for (let i=0,p=0;i<e.length;i+=4,p++) Y[p] = (.2126*e[i]+.7152*e[i+1]+.0722*e[i+2])/255;
     let fl0=0, bw0=0, tx0=0, nn=0; for (let y=1;y<95;y++) for (let x=1;x<95;x++){ const i=y*96+x, l=Math.abs(4*Y[i]-Y[i-1]-Y[i+1]-Y[i-96]-Y[i+96]); nn++; if (l<.015) fl0++; if (Y[i]<.06||Y[i]>.94) bw0++;
       if (l>.5){ const hi=Math.max(Y[i],Y[i-1],Y[i+1],Y[i-96],Y[i+96]), lo=Math.min(Y[i],Y[i-1],Y[i+1],Y[i-96],Y[i+96]); if (hi>.75 && lo<.3) tx0++; } }
