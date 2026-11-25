@@ -50,7 +50,7 @@
         const title = c ? c[0] : bt, sub = a === 'm-vibe-pick' && /%/.test(bt) ? bt : (c ? c[1] : st);
         const data = [...e.attributes].filter(x => x.name.startsWith('data-')).map(x => `${x.name}="${esc(x.value)}"`).join(' ');
         const ico = dots ? `<span class="pt-tile-ico is-dots">${dots.innerHTML}</span>` : `<span class="pt-tile-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[a] || ICON['m-shot']}</svg></span>`;
-        return `<button class="pt-tile" ${data}>${ico}<span class="pt-tile-go" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 14 14"><path d="M4 10L10 4M5 4h5v5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b>${esc(title)}</b><small>${esc(sub)}</small></button>`; }).join('');
+        return `<button class="pt-tile" ${data}>${ico}<b>${esc(title)}</b><small>${esc(sub)}</small></button>`; }).join('');
       strip.innerHTML = `<h3>${T('Araçlar','Tools')}</h3><div class="pt-home-grid${extras.length % 2 ? ' is-odd' : ''}">${tiles}</div>`;
       extras.forEach(e => e.remove());
     }

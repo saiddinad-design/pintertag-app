@@ -530,7 +530,7 @@ body.dark .pt-ig-empty{color:#999}
 .pt-tile-ico.is-dots{display:flex;gap:0;padding:0 6px;width:auto;border-radius:99px}
 .pt-tile-ico.is-dots i{width:14px;height:14px;border-radius:50%;margin-left:-4px;border:1.5px solid #fff}
 .pt-tile-ico.is-dots i:first-child{margin-left:0}
-.pt-tile-go{position:absolute;top:16px;right:16px;opacity:.55}
+
 .pt-tile:active{transform:scale(.98)}
 body.dark .pt-tile{background:#1f1f1f}
 body.dark .pt-tile-ico{background:#2c2c2c;color:#fff}
