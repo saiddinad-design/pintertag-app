@@ -106,12 +106,13 @@
       <button class="pill solid wide" type="submit">${tr('Giriş yap', 'Sign in')}</button>
       <p class="cl-note">${tr('E-postadaki butona da dokunabilirsin. Gelmediyse spam klasörüne bak.', 'You can also tap the button in the email. Not there? Check spam.')}</p>
       <button type="button" class="cl-link" data-action="cl-back">${tr('Başka e-posta kullan', 'Use another email')}</button></form>`);
-    modal(tr('ücretsiz hesap.', 'free account.'), `<form class="cl-sheet" id="cl-mail-form"><p class="cl-lead">${tr('Planın kaybolmasın. E-postanla gir; grid’in, planların ve fotoğrafların hesabında yedeklensin, başka telefonda da açılsın.', 'Don’t lose your plan. Sign in with your email; your grid, plans and photos are backed up and open on any phone.')}</p>
-      <input class="cl-input" name="email" type="email" autocomplete="email" inputmode="email" placeholder="${tr('e-posta adresin', 'your email')}" required>
-      <label class="m-check"><input type="checkbox" name="consent" required><span>${tr('Planımın ve fotoğraflarımın yedeğinin AB’deki (İrlanda) sunucuda saklanmasına açık rıza veriyorum.', 'I consent to my plan and photos being backed up on a server in the EU (Ireland).')}</span></label>
-      <label class="m-check"><input type="checkbox" name="mk"><span>${tr('Yeni özellik ve ipuçlarını e-postayla almak istiyorum.', 'Email me new features and tips.')}</span></label>
-      <button class="pill solid wide" type="submit">${tr('Kod gönder', 'Send code')}</button>
-      <p class="cl-note">${tr('Şifre yok. Ücretsiz. Devam edersen ', 'No password. Free. By continuing you accept the ')}<button type="button" class="cl-link" data-action="m-legal" data-doc="privacy">${tr('gizlilik metnini', 'privacy notice')}</button>${tr(' kabul etmiş olursun.', '.')}</p></form>`); }
+    const last = m.last || '', back = !!(last && m.consent);
+    modal(back ? tr('tekrar hoş geldin.', 'welcome back.') : tr('ücretsiz hesap.', 'free account.'), `<form class="cl-sheet" id="cl-mail-form"><p class="cl-lead">${tr('Planın yedeklensin, her telefonda açılsın.', 'Back up your plan. Open it on any phone.')}</p>
+      <div class="cl-field">${last ? `<span class="cl-last">${tr('Son kullanılan', 'Last used')}</span>` : ''}<input class="cl-input" name="email" type="email" autocomplete="email" inputmode="email" placeholder="${tr('e-posta adresin', 'your email')}" value="${esc(last)}" required></div>
+      <label class="m-check"><input type="checkbox" name="consent" required ${back ? 'checked' : ''}><span>${tr('Yedeğimin AB’deki (İrlanda) sunucuda saklanmasına açık rıza veriyorum.', 'I consent to my backup being stored on a server in the EU (Ireland).')}</span></label>
+      ${back ? '' : `<label class="m-check"><input type="checkbox" name="mk"><span>${tr('Yeni özellikleri e-postayla almak istiyorum.', 'Email me new features.')}</span></label>`}
+      <button class="pill solid wide" type="submit">${tr('E-postama kod gönder', 'Email me a code')}</button>
+      <p class="cl-note">${tr('Şifre yok, ücret yok. Devam edersen ', 'No password, no fee. By continuing you accept the ')}<button type="button" class="cl-link" data-action="m-legal" data-doc="terms">${tr('Kullanım Koşulları', 'Terms')}</button>${tr(' ve ', ' and ')}<button type="button" class="cl-link" data-action="m-legal" data-doc="privacy">${tr('Gizlilik', 'Privacy')}</button>${tr(' metnini kabul edersin.', ' notice.')}</p></form>`); }
   function stateLine(){ const m = meta();
     if (status === 'saving' || status === 'loading') return tr('Yedekleniyor…', 'Backing up…');
     if (status === 'error') return tr('Yedeklenemedi. İnternetini kontrol et.', 'Backup failed. Check your connection.');
@@ -152,7 +153,7 @@
   document.addEventListener('submit', async e => { const f = e.target; if (!f || !/^cl-/.test(f.id)) return; e.preventDefault();
     const btn = f.querySelector('[type=submit]'); if (btn) btn.disabled = true;
     try { await client();
-      if (f.id === 'cl-mail-form'){ const email = f.elements.email.value.trim().toLowerCase(); setMeta({ marketing: !!f.elements.mk.checked, consent: Date.now() });
+      if (f.id === 'cl-mail-form'){ const email = f.elements.email.value.trim().toLowerCase(); setMeta({ ...(f.elements.mk ? { marketing: !!f.elements.mk.checked } : {}), consent: Date.now(), last: email });
         const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: location.origin + location.pathname } });
         if (error) throw error; sentTo = email; sheet(); setTimeout(() => document.querySelector('.cl-code')?.focus(), 60); }
       if (f.id === 'cl-code-form'){ const token = f.elements.code.value.replace(/\D/g, '');

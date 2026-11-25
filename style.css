@@ -603,6 +603,7 @@ body.dark .pt-booth-stage>*{background:#222}
 .cl-sheet{display:grid;gap:14px}.cl-sheet p{margin:0;line-height:1.45}.cl-lead{font-size:15px}
 .cl-input{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
 .cl-code{font-size:26px;letter-spacing:.35em;text-align:center;font-variant-numeric:tabular-nums}
+.cl-field{position:relative}.cl-last{position:absolute;right:12px;top:-9px;font-size:11px;line-height:1;padding:4px 8px;border-radius:99px;background:var(--ink);color:var(--bg)}.cl-note .cl-link{display:inline}
 .cl-note{font-size:12px;color:var(--muted)}.cl-link{font:inherit;font-size:inherit;color:var(--ink);text-decoration:underline;background:none;border:0;padding:0;cursor:pointer;justify-self:start}
 .cl-who{display:flex;gap:12px;align-items:center}.cl-who b{display:block;word-break:break-all}.cl-who small{color:var(--muted);font-size:12px}
 .cl-av{width:46px;height:46px;flex:0 0 46px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-size:19px;font-weight:700}
