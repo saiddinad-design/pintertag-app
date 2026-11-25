@@ -28,7 +28,7 @@
   function bar(ids){
     const seg = (v, l) => `<button class="${mode() === v ? 'on' : ''}" data-action="pt-plan-mode" data-v="${v}" aria-pressed="${mode() === v}">${l}</button>`;
     return `<div class="pt-plan-bar"><div class="pt-plan-seg" role="group" aria-label="${T('Hesap türü','Account type')}">${seg('brand', T('Marka','Brand'))}${seg('personal', T('Kişisel','Personal'))}</div>
-      <label class="pt-plan-switch"><input type="checkbox" data-plan-toggle ${on() ? 'checked' : ''}><span>${T('Plan','Plan')}</span></label></div>
+      <label class="pt-plan-switch"><input type="checkbox" data-plan-toggle ${on() ? 'checked' : ''}><span>${T('Ne nereye gelir','What goes where')}</span></label></div>
       ${on() ? `<p class="pt-plan-note">${T('Her kare ne paylaşacağını söylüyor. Instagram’da 9’dan başla, 1’e doğru paylaş.','Each frame says what to post. On Instagram, post 9 first and work back to 1.')}</p>` : ''}
       ${on() && ids.length >= 2 ? action('pt-plan-fit', T('Plana göre yerleştir','Arrange to the plan'), 'pill pt-plan-fit') : ''}`;
   }
