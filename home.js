@@ -22,8 +22,11 @@
     /* slot 1: carousel check (replaced today's pick). it brings its own slides, so it never waits for grid photos */
     const today = q('.m-today'); if (today) today.remove();
     const cc = document.createElement('button'); cc.dataset.action = 'pt-carousel-open';
-    const found = [cc, pick('.m-import:not(.pt-booth-cta)'), pick('.pt-booth-cta'), pick('.m-vibe-card')];
-    const want = ['pt-carousel-open', 'm-shot', 'pt-booth-open', 'm-vibe-pick'];
+    /* slot 4: fits my grid? (replaced target vibe) */
+    const vibe = q('.m-vibe-card'); if (vibe) vibe.remove();
+    const fitT = document.createElement('button'); fitT.dataset.action = 'pt-fit-open';
+    const found = [cc, pick('.m-import:not(.pt-booth-cta)'), pick('.pt-booth-cta'), fitT];
+    const want = ['pt-carousel-open', 'm-shot', 'pt-booth-open', 'pt-fit-open'];
     const extras = (found.some(Boolean) || !q('.pt-home-tools')) ? found.map((e, i) => { if (e) return e;
       const f = document.createElement('button'); f.dataset.action = 'pt-tile-need'; f.dataset.want = want[i]; return f; }) : [];
     /* tools: rebuilt as equal tiles (same size, same parts), each carrying the original card's action */
@@ -34,13 +37,13 @@
         'pt-carousel-open': '<rect x="7" y="4" width="10" height="16" rx="2"/><path d="M4 7v10M20 7v10"/>',
         'm-shot': '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9.3 4v16M14.7 4v16M4 9.3h16M4 14.7h16"/>',
         'pt-booth-open': '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
-        'm-vibe-pick': '<circle cx="9" cy="10" r="5"/><circle cx="15" cy="10" r="5"/><circle cx="12" cy="15" r="5"/>'
+        'pt-fit-open': '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/><path d="M13.5 15.5l1.6 1.6 3-3.2"/>'
       };
       const COPY = {
         'pt-carousel-open': [T('Karusel ve çekim','Carousel & shoot'), T('Karuseli puanla, çekimden en iyisini seç.','Score a carousel, pick the best shot.')],
         'm-shot': [T('Instagram grid’in','Your Instagram grid'), T('Ekran görüntüsünden puan ve vibe.','Score and vibe from a screenshot.')],
         'pt-booth-open': [T('Kabin','Booth'), T('Tekli, 3’lü ya da 4’lü şerit.','Single, 3 or 4 frame strip.')],
-        'm-vibe-pick': [T('Hedef vibe','Target vibe'), T('Neyi çekeceğini söyler.','Tells you what to shoot.')]
+        'pt-fit-open': [T('Grid’ime uyar mı?','Fits my grid?'), T('Paylaşmadan önce feed’ine bak.','See it on your feed before you post.')]
       };
       const tiles = extras.map(e => { const a = e.dataset.want || e.dataset.action || '', b = e.querySelector('b'), sm = e.querySelector('small');
         const dots = e.querySelector('.m-vibe-dots'), c = COPY[a], bt = b ? b.textContent.trim() : '', st = sm ? sm.textContent.trim() : '';
