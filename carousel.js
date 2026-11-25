@@ -57,8 +57,11 @@
     const P = [0,0,0,0,0,0,0,0]; let pt = 1e-9; ms.forEach(m => m.hist.forEach((v, k) => { P[k] += v * m.sat; pt += v * m.sat; }));
     const ent = -P.map(v => v / pt).filter(v => v > 0).reduce((t, q) => t + q * Math.log(q), 0) / Math.log(8);
     const zf = { hue: (ent - .6309) / .1369, warm: (sdv(ms.map(m => m.warm)) - .0427) / .0279, busy: (sdv(ms.map(m => m.sharp)) - .0415) / .0176 };
-    const famP = 1 / (1 + Math.exp(-(-1.29 * zf.hue - 1.03 * zf.warm - .91 * zf.busy - .25)));
-    const fam = clamp(Math.round(2 + 8 * famP), 2, 10), famWhy = ['hue', 'warm', 'busy'].reduce((a, k) => zf[k] * ({ hue: 1.29, warm: 1.03, busy: .91 })[k] > zf[a] * ({ hue: 1.29, warm: 1.03, busy: .91 })[a] ? k : a, 'hue');
+    /* brand and personal are fitted apart (brand: 31 curated brand boards, personal: 49 creator grids, each against the 62 mixes).
+       personal accounts are allowed more warmth and calm/busy variety (a selfie, a room, a detail); brands are held tighter. */
+    const FW = (typeof state !== 'undefined' && state.mode === 'personal') ? { hue: 1.28, warm: .59, busy: .57, b: -.08 } : { hue: 1.0, warm: 1.39, busy: 1.25, b: -.98 };
+    const famP = 1 / (1 + Math.exp(-(-FW.hue * zf.hue - FW.warm * zf.warm - FW.busy * zf.busy + FW.b)));
+    const fam = clamp(Math.round(2 + 8 * famP), 2, 10), famWhy = ['hue', 'warm', 'busy'].reduce((a, k) => zf[k] * FW[k] > zf[a] * FW[a] ? k : a, 'hue');
     const avgD = idx.map(i => idx.filter(k => k !== i).reduce((t, k) => t + near(ms[i], ms[k]), 0) / (n - 1));
     const med = avgD.slice().sort((a, b) => a - b)[Math.floor(n / 2)], odd = idx.reduce((a, b) => avgD[b] > avgD[a] ? b : a, 0);
     const famOdd = n > 2 && avgD[odd] > med * 1.35 && avgD[odd] > 3 ? odd : -1;
@@ -107,7 +110,7 @@
       ${row(T('Son kare', 'Last slide'), r.end, endWhy, endFix, wk === 'end')}
       <p class="cc-h">${T('Şu anki sıran', 'Your order')}</p>${strip(slides.map((_, i) => i))}
       ${r.changed ? `<p class="cc-h">${T('Önerilen sıra', 'Suggested order')}</p>${strip(r.order)}` : `<p class="cc-h">${T('Sıran zaten en iyisi.', 'Your order is already the best one.')}</p>`}
-      <p class="cc-note">${T('Işık, renk ve detaydan ölçülür. Yazıları ve caption’ı okuyamaz; metnin gücünü sen değerlendir.', 'Measured from light, colour and detail. It can’t read your text or caption; judge the words yourself.')}</p>
+      <p class="cc-note">${state.mode === 'personal' ? T('Kişisel hesap olarak puanlandı: daha çok çeşitliliğe izin verilir.', 'Scored as a personal account: more variety is allowed.') : T('Marka hesabı olarak puanlandı: bütünlük daha sıkı tutulur.', 'Scored as a brand account: one family is held tighter.')} ${T('Işık, renk ve detaydan ölçülür. Yazıları ve caption’ı okuyamaz; metnin gücünü sen değerlendir.', 'Measured from light, colour and detail. It can’t read your text or caption; judge the words yourself.')}</p>
       ${action('pt-cc-pick', T('Başka karusel puanla', 'Check another carousel'), 'pill solid wide space')}`); }
 
   input.addEventListener('change', async () => {
