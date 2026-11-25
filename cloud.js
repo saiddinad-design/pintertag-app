@@ -83,7 +83,9 @@
       if (!localHas || (mine && row.updated_at === m.at)){ await restore(row); if (cloudHas) say(tr('Planın geri geldi.', 'Your plan is back.')); return; }
       if (!cloudHas){ await push(); return; }
       choose(row);
-    } catch (e) { status = 'error'; lastErr = String(e && e.message || e); paint(); } }
+    } catch (e) { status = 'error'; lastErr = String(e && e.message || e); paint(); }
+    finally { /* after sign in: bring back any photo this device has lost from the backup */
+    try { if ((state.photos || []).some(p => p.lost) && await PTStore.hydrate(state)){ save(); render(); } } catch(_) {} } }
   function choose(row){ const when = new Date(row.updated_at).toLocaleString(state.lang === 'tr' ? 'tr-TR' : 'en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
     modal(tr('hangisi kalsın?', 'which one stays?'), `<div class="cl-sheet"><p>${tr('Hem hesabında hem bu cihazda bir plan var.', 'There is a plan in your account and on this device.')}</p>
       <button class="cl-opt" data-action="cl-take-cloud"><b>${tr('Hesabımdakini getir', 'Bring my account’s plan')}</b><small>${tr('Son kayıt: ', 'Last saved: ') + when}</small></button>
