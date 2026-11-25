@@ -19,8 +19,11 @@
     if (!loose && (!tools || feed.compareDocumentPosition(tools) & 4) && (!ig || ig.compareDocumentPosition(feed) & 4)) return;
     /* always the same 4 tools in the same order; one that has nothing to work on yet asks for photos first */
     const pick = sel => q(sel) || null;
-    const found = [pick('.m-today'), pick('.m-import:not(.pt-booth-cta)'), pick('.pt-booth-cta'), pick('.m-vibe-card')];
-    const want = ['m-today', 'm-shot', 'pt-booth-open', 'm-vibe-pick'];
+    /* slot 1: carousel check (replaced today's pick). it brings its own slides, so it never waits for grid photos */
+    const today = q('.m-today'); if (today) today.remove();
+    const cc = document.createElement('button'); cc.dataset.action = 'pt-carousel-open';
+    const found = [cc, pick('.m-import:not(.pt-booth-cta)'), pick('.pt-booth-cta'), pick('.m-vibe-card')];
+    const want = ['pt-carousel-open', 'm-shot', 'pt-booth-open', 'm-vibe-pick'];
     const extras = (found.some(Boolean) || !q('.pt-home-tools')) ? found.map((e, i) => { if (e) return e;
       const f = document.createElement('button'); f.dataset.action = 'pt-tile-need'; f.dataset.want = want[i]; return f; }) : [];
     /* tools: rebuilt as equal tiles (same size, same parts), each carrying the original card's action */
@@ -28,13 +31,13 @@
     if (extras.length){
       if (!strip){ strip = document.createElement('div'); strip.className = 'pt-home-tools'; }
       const ICON = {
-        'm-today': '<path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>',
+        'pt-carousel-open': '<rect x="7" y="4" width="10" height="16" rx="2"/><path d="M4 7v10M20 7v10"/>',
         'm-shot': '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9.3 4v16M14.7 4v16M4 9.3h16M4 14.7h16"/>',
         'pt-booth-open': '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
         'm-vibe-pick': '<circle cx="9" cy="10" r="5"/><circle cx="15" cy="10" r="5"/><circle cx="12" cy="15" r="5"/>'
       };
       const COPY = {
-        'm-today': [T('Bugünün önerisi','Today’s pick'), T('Tek öneri, nedeniyle.','One pick, with the reason.')],
+        'pt-carousel-open': [T('Karusel puanı','Carousel score'), T('Paylaşmadan önce 10 üzerinden.','Out of 10, before you post.')],
         'm-shot': [T('Instagram grid’in','Your Instagram grid'), T('Ekran görüntüsünden puan ve vibe.','Score and vibe from a screenshot.')],
         'pt-booth-open': [T('Kabin','Booth'), T('Tekli, 3’lü ya da 4’lü şerit.','Single, 3 or 4 frame strip.')],
         'm-vibe-pick': [T('Hedef vibe','Target vibe'), T('Neyi çekeceğini söyler.','Tells you what to shoot.')]
