@@ -1,0 +1,32 @@
+# Compiles the iOS app without signing on every change to the app or the native project,
+# so build errors show up before anything is sent to Apple. Needs no secrets.
+name: iOS build check
+on:
+  push:
+    branches: [main]
+    paths: ['native/**', '*.js', 'index.html', 'style.css', '.github/workflows/ios-build-check.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: native
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Pick Xcode
+        run: sudo xcode-select -s "$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)" && xcodebuild -version
+      - name: Build web bundle and sync iOS project
+        run: npm ci --no-audit --no-fund && npm run sync
+      - name: Compile for the iOS simulator (no signing)
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build | tail -40
+          test ${PIPESTATUS[0]} -eq 0
