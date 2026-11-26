@@ -42,7 +42,7 @@
     if (!on()) return h;
     let n = 0;
     h = h.replace(/<button class="simple-tile" data-action="s-photo" data-id="[^"]*">/g, m => { const i = n++; if (i > 8) return m; const r = roleAt(i);
-      return m + `<span class="pt-slot-tag" style="--c:${r.c}" aria-hidden="true"><b>${i + 1}</b>${esc(name(r))}</span>`; });
+      return m + `<span class="pt-slot-tag" style="--c:${r.c}" data-plan="${esc(T('Plan: ','Plan: ') + name(r))}" aria-hidden="true"><b>${i + 1}</b></span>`; });
     if (ids.length < 9){
       h = h.replace(/<button class="grid-placeholder"[^>]*>(?:<span aria-hidden="true">＋<\/span>)?<\/button>/g, '');
       const empty = Array.from({ length: 9 - ids.length }, (_, k) => slot(ids.length + k)).join('');
