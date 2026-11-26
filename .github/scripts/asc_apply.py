@@ -1,7 +1,9 @@
-vloc='48e08252-8be6-45df-b4ae-bfc7c1ee8f89'
-for pt,img in [('PRODUCT_PAGE_HEADER_ASSET','77000019-7aa1-8505-803a-fc28434721bd'),('APP_STORE_SEARCH_RESULTS_ASSET','95c00019-7aa1-8505-8017-ae8d31334955')]:
-    r=api('POST','/v1/appAssetLibraryPlacements',json={'data':{'type':'appAssetLibraryPlacements','attributes':{'placementType':pt,'placementGroup':'DEFAULT_PROFILE'},'relationships':{'image':{'data':{'type':'appAssetLibraryImages','id':img}},'appStoreVersionLocalization':{'data':{'type':'appStoreVersionLocalizations','id':vloc}}}}})
-    print('PLACE',pt, r and r['data']['attributes']['state'])
-pl=api('GET',f'/v1/appStoreVersionLocalizations/{vloc}/placements?limit=50')
-from collections import Counter
-print('ALL',Counter((p['attributes']['placementType'],p['attributes']['placementGroup']) for p in pl['data']))
+av=api('GET',f'/v1/apps/{APP}/appAvailabilityV2')
+avid=av['data']['id'] if av else APP
+url=f'/v2/appAvailabilities/{avid}/territoryAvailabilities?limit=200&include=territory'
+tas=api('GET',url)
+chn=[t for t in tas['data'] if t['relationships']['territory']['data']['id']=='CHN']
+print('found',len(tas['data']),[ (t['id'],t['attributes']) for t in chn])
+for t in chn:
+    r=api('PATCH',f"/v1/territoryAvailabilities/{t['id']}",json={'data':{'type':'territoryAvailabilities','id':t['id'],'attributes':{'available':False}}})
+    print('STEP china-off', 'OK' if r else 'FAILED', r and r['data']['attributes'])
