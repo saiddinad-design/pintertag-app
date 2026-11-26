@@ -1,38 +1,28 @@
-# runs inside asc_meta.py (api, APP, info, ver available)
-DESC="""Pintertag is your feed's art director. See how your Instagram grid will look before you post, and get a clear answer on what to post next.
-
-PLAN YOUR NEXT 9
-Add your photos and arrange your next 9 posts in a real 3-column grid. Drag to swap, crop to fit, and see the whole feed before anything goes live. Every empty slot tells you what kind of shot to post there.
-
-BRAND AND PERSONAL
-Keep two separate grids in one app: one for your own account, one for your brand. Each has its own photos, plan and calendar.
-
-SCORE YOUR GRID
-Upload a screenshot of your profile and get a grid score with one clear fix.
-
-SCORE YOUR CAROUSEL
-Get a score out of 10 for your carousel: the hook, whether the photos belong together, the flow and the ending.
-
-PICK THE BEST FRAMES
-Add up to 40 photos from a shoot. Pintertag picks the strongest frames and suggests a carousel order.
-
-DOES IT FIT MY GRID?
-Check a new photo against your feed before you post it.
-
-PHOTO BOOTH
-Turn your phone into a photo booth: a single black and white print or a 3 or 4 frame strip.
-
-POST CALENDAR
-Plan which day each post goes out and tick it off once it's shared.
-
-YOUR PHOTOS STAY YOURS
-No account, no login. Your photos and plans stay on your phone and are never uploaded.
-
-Pintertag is free. Questions or ideas: support@pintertag.com"""
-PROMO="Plan your next 9 posts, score your grid and carousels, and pick the best frames from a shoot. Your feed's art director, free."
-KW="grid,preview,aesthetic,layout,carousel,photo,booth,schedule,content,creator,influencer,posts,score"
-assert len(KW)<=100 and len(PROMO)<=170 and len(DESC)<=4000
-def step(name,fn):
-    r=fn(); print('STEP',name,'OK' if r is not None else 'FAILED')
-loc=api('GET',f"/v1/appStoreVersions/{ver['id']}/appStoreVersionLocalizations")['data'][0]
-step('desc',lambda: api('PATCH',f"/v1/appStoreVersionLocalizations/{loc['id']}",json={'data':{'type':'appStoreVersionLocalizations','id':loc['id'],'attributes':{'description':DESC}}}))
+import re
+lib=api('GET',f'/v1/apps/{APP}/assetLibrary')['data']['id']; print('lib',lib)
+rd=api('GET','/v1/appAssetLibraryRefData')
+txt=json.dumps(rd)
+open('refdata.json','w').write(txt)
+print('REFLEN',len(txt))
+for m in sorted(set(re.findall(r'"([A-Z_]*(?:HEADER|SEARCH|UNIVERSAL)[A-Z_]*)"',txt))): print('ENUM',m)
+# show snippets around header/search
+for kw in ['PRODUCT_PAGE_HEADER','SEARCH_RESULT']:
+    for mm in list(re.finditer(kw,txt))[:6]: print('SNIP',kw,txt[max(0,mm.start()-300):mm.start()+400].replace('\n',' '))
+vloc=api('GET',f"/v1/appStoreVersions/{ver['id']}/appStoreVersionLocalizations")['data'][0]['id']
+ids={}
+for fn in ['pintertag-header-3840x1646.png','pintertag-search-3840x2560.png']:
+    data=open('store/creative/'+fn,'rb').read()
+    r=api('POST','/v1/appAssetLibraryImages',json={'data':{'type':'appAssetLibraryImages','attributes':{'fileName':fn,'fileSize':len(data),'category':'CREATIVE_ASSETS','referenceName':fn[10:-4]},'relationships':{'assetLibrary':{'data':{'type':'appAssetLibraries','id':lib}}}}})
+    if not r: continue
+    im=r['data']
+    for op in im['attributes']['uploadOperations']:
+        h={x['name']:x['value'] for x in op.get('requestHeaders',[])}
+        requests.request(op['method'],op['url'],headers=h,data=data[op['offset']:op['offset']+op['length']]).raise_for_status()
+    api('PATCH',f"/v1/appAssetLibraryImages/{im['id']}",json={'data':{'type':'appAssetLibraryImages','id':im['id'],'attributes':{'uploaded':True}}})
+    ids[fn]=im['id']
+for i in range(30):
+    st={fn:api('GET',f'/v1/appAssetLibraryImages/{i_}')['data']['attributes'] for fn,i_ in ids.items()}
+    if all(a['state'] not in ('AWAITING_UPLOAD','UPLOAD_COMPLETE') for a in st.values()): break
+    time.sleep(10)
+for fn,a in st.items(): print('IMG',fn,a['state'],a.get('specId'),a.get('stateDetails'))
+print('IDS',json.dumps(ids)); print('VLOC',vloc)
