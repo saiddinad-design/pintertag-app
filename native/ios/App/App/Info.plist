@@ -36,7 +36,7 @@
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Pintertag saves the posts and story cards you export to your photo library.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Pintertag uses the photos you choose to plan your grid and score it. Photos stay on your iPhone unless you turn on backup.</string>
+	<string>Pintertag uses the photos you choose to plan your grid and score it. Your photos stay on your iPhone.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
