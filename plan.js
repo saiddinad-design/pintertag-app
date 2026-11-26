@@ -33,7 +33,7 @@
       ${on() && ids.length >= 2 ? action('pt-plan-fit', T('Plana göre yerleştir','Arrange to the plan'), 'pill pt-plan-fit') : ''}`;
   }
   function slot(i){ const r = roleAt(i);
-    return `<button class="pt-slot" data-action="pt-plan-slot" data-i="${i}" style="--c:${r.c};--bg:url('assets/inspo/${mode()}-${i % 9}.webp?v=2')" aria-label="${esc(name(r))}, ${T('fotoğraf ekle','add photo')}"><b>${i + 1}</b><strong>${esc(name(r))}</strong><small>${esc(T(...r.hint))}</small><i aria-hidden="true">＋</i></button>`; }
+    return `<button class="pt-slot" data-action="pt-plan-slot" data-i="${i}" style="--c:${r.c};--bg:url('assets/inspo/${mode()}-${i % 9}.webp?v=3')" aria-label="${esc(name(r))}, ${T('fotoğraf ekle','add photo')}"><b>${i + 1}</b><strong>${esc(name(r))}</strong><small>${esc(T(...r.hint))}</small><i aria-hidden="true">＋</i></button>`; }
 
   const _grid = simpleGrid;
   simpleGrid = function(){
