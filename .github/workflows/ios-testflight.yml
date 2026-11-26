@@ -66,10 +66,10 @@ jobs:
             -destination 'generic/platform=iOS' -archivePath $RUNNER_TEMP/Pintertag.xcarchive \
             DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} CODE_SIGN_STYLE=Automatic \
             MARKETING_VERSION=${{ inputs.version }} CURRENT_PROJECT_VERSION=${{ github.run_number }} \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8 \
-            -authenticationKeyID ${{ secrets.ASC_KEY_ID }} -authenticationKeyIssuerID ${{ secrets.ASC_ISSUER_ID }} \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
             archive
+          # The archive is unsigned on purpose: a development-signed archive needs a
+          # registered device. The export step below signs it for App Store distribution.
       - name: Upload to App Store Connect (TestFlight)
         run: |
           cat > $RUNNER_TEMP/export.plist <<PLIST
