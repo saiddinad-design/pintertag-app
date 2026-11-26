@@ -42,6 +42,24 @@ jobs:
         env:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
           ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+      - name: Check App Store Connect API key
+        run: |
+          python3 -m pip install --quiet --break-system-packages pyjwt cryptography 2>/dev/null || python3 -m pip install --quiet pyjwt cryptography
+          python3 - <<'PY'
+          import jwt, time, os, urllib.request, urllib.error
+          kid, iss = os.environ["KID"], os.environ["ISS"]
+          key = open(os.path.expanduser(f"~/private_keys/AuthKey_{kid}.p8")).read()
+          tok = jwt.encode({"iss": iss, "iat": int(time.time()), "exp": int(time.time()) + 600, "aud": "appstoreconnect-v1"},
+                           key, algorithm="ES256", headers={"kid": kid, "typ": "JWT"})
+          req = urllib.request.Request("https://api.appstoreconnect.apple.com/v1/apps?limit=1", headers={"Authorization": "Bearer " + tok})
+          try:
+              r = urllib.request.urlopen(req); print("API key OK:", r.status)
+          except urllib.error.HTTPError as e:
+              print("API key rejected:", e.code, e.read().decode()[:400]); raise SystemExit(1)
+          PY
+        env:
+          KID: ${{ secrets.ASC_KEY_ID }}
+          ISS: ${{ secrets.ASC_ISSUER_ID }}
       - name: Archive
         run: |
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
