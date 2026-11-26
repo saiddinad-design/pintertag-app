@@ -7,10 +7,11 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           K=$(grep -o "sb_publishable_[A-Za-z0-9_]*" stats.js | head -1); U=https://mtmjadjiofgopmutdvnw.supabase.co/rest/v1
+          echo "INSERT test: $(curl -s -o /tmp/o -w "%{http_code}" -X POST "$U/pt_events" -H "apikey: $K" -H "Content-Type: application/json" -H "Prefer: return=minimal" -d "{}") $(head -c 200 /tmp/o)"
           for t in pt_events photos pt_state profiles; do
-            echo "READ $t: $(curl -s -o /tmp/o -w '%{http_code}' "$U/$t?select=*&limit=3" -H "apikey: $K" -H "Authorization: Bearer $K") rows=$(head -c 200 /tmp/o)"
+            echo "READ $t: $(curl -s -o /tmp/o -w '%{http_code}' "$U/$t?select=*&limit=3" -H "apikey: $K") rows=$(head -c 200 /tmp/o)"
           done
-          echo "UPDATE pt_events: $(curl -s -o /tmp/o -w '%{http_code}' -X PATCH "$U/pt_events?id=gt.0" -H "apikey: $K" -H "Authorization: Bearer $K" -H 'Content-Type: application/json' -H 'Prefer: return=representation' -d '{"platform":"x"}') $(head -c 150 /tmp/o)"
-          echo "DELETE pt_events: $(curl -s -o /tmp/o -w '%{http_code}' -X DELETE "$U/pt_events?id=gt.0" -H "apikey: $K" -H "Authorization: Bearer $K" -H 'Prefer: return=representation') $(head -c 150 /tmp/o)"
-          echo "STORAGE list: $(curl -s -o /tmp/o -w '%{http_code}' -X POST "https://mtmjadjiofgopmutdvnw.supabase.co/storage/v1/object/list/photos" -H "apikey: $K" -H "Authorization: Bearer $K" -H 'Content-Type: application/json' -d '{"prefix":"","limit":5}') $(head -c 200 /tmp/o)"
-          echo "BUCKETS: $(curl -s "https://mtmjadjiofgopmutdvnw.supabase.co/storage/v1/bucket" -H "apikey: $K" -H "Authorization: Bearer $K" | head -c 200)"
+          echo "UPDATE pt_events: $(curl -s -o /tmp/o -w '%{http_code}' -X PATCH "$U/pt_events?id=gt.0" -H "apikey: $K" -H 'Content-Type: application/json' -H 'Prefer: return=representation' -d '{"platform":"x"}') $(head -c 150 /tmp/o)"
+          echo "DELETE pt_events: $(curl -s -o /tmp/o -w '%{http_code}' -X DELETE "$U/pt_events?id=gt.0" -H "apikey: $K" -H 'Prefer: return=representation') $(head -c 150 /tmp/o)"
+          echo "STORAGE list: $(curl -s -o /tmp/o -w '%{http_code}' -X POST "https://mtmjadjiofgopmutdvnw.supabase.co/storage/v1/object/list/photos" -H "apikey: $K" -H 'Content-Type: application/json' -d '{"prefix":"","limit":5}') $(head -c 200 /tmp/o)"
+          echo "BUCKETS: $(curl -s "https://mtmjadjiofgopmutdvnw.supabase.co/storage/v1/bucket" -H "apikey: $K" | head -c 200)"
