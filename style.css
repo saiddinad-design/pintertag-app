@@ -612,3 +612,4 @@ body.dark .pt-booth-stage>*{background:#222}
 .cl-nudge{display:flex;align-items:center;gap:6px;margin:0 0 12px;padding:12px 8px 12px 16px;border-radius:16px;background:var(--soft)}
 .cl-nudge>button:first-child{flex:1;text-align:left;font:inherit;background:none;border:0;color:var(--ink);padding:0}.cl-nudge b{display:block;font-size:14px}.cl-nudge span{font-size:12px;color:var(--muted);text-decoration:underline}
 .cl-x{width:32px;height:32px;border-radius:50%;background:none;border:0;font-size:20px;color:var(--muted)}
+.native-setting-copy .pill+.pill{margin-top:10px}

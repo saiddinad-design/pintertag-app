@@ -51,7 +51,7 @@
   /* ---------- legal docs ---------- */
   function openDoc(doc, back){ const d = PTLegal[doc]; if (!d) return;
     const body = (state.lang === 'en' && d.enSections ? d.enSections : d.sections).map(([h, p]) => `<h3>${esc(h)}</h3><p>${esc(p)}</p>`).join('');
-    modal(T(d.tr, d.en) + '.', `<div class="m-legal"><p class="m-draft">${esc(state.lang === 'en' ? PTLegal.draftEn : PTLegal.draft)} ${T('Son güncelleme','Updated')}: ${PTLegal.updated}</p>${body}</div>${back ? action('m-pw-open', T('Geri','Back'), 'pill wide space', `data-ctx="${esc(back)}"`) : ''}`); }
+    modal(T(d.tr, d.en) + '.', `<div class="m-legal"><p class="m-draft">${T('Son güncelleme','Updated')}: ${PTLegal.updated}</p>${body}</div>${back ? action('m-pw-open', T('Geri','Back'), 'pill wide space', `data-ctx="${esc(back)}"`) : ''}`); }
 
   /* ---------- paywall ---------- */
   let pwCtx = '';
