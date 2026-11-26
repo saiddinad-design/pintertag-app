@@ -1,0 +1,20 @@
+name: App Store metadata
+on:
+  workflow_dispatch:
+    inputs:
+      mode: {default: dump}
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install pyjwt cryptography requests
+      - env:
+          KID: ${{ secrets.ASC_KEY_ID }}
+          ISS: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          MODE: ${{ inputs.mode }}
+        run: |
+          if [ -n "$ASC_KEY_P8" ]; then printf '%s\n' "$ASC_KEY_P8" > key.p8; else echo "$ASC_KEY_P8_BASE64" | base64 --decode > key.p8; fi
+          KEY_FILE=key.p8 python3 .github/scripts/asc_meta.py
