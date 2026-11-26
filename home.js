@@ -66,7 +66,8 @@
      if the screen is short (Claude's own bars, small phones), the grid gets a little narrower instead of running under the menu. */
   function fitGrid(){
     const app = document.querySelector('#main > .simple-app'), feed = app && app.querySelector(':scope > .simple-feed'); if (!feed) return;
-    feed.style.width = ''; feed.classList.remove('is-tight');
+    feed.style.width = ''; feed.style.marginLeft = feed.style.marginRight = ''; feed.classList.remove('is-tight');
+    return; /* full-width grid on phones: a narrowed grid looked broken on real devices; the page scrolls instead */
     if (matchMedia('(hover:hover) and (pointer:fine) and (min-width:700px)').matches) return;
     const nav = document.getElementById('appnav'), r = feed.getBoundingClientRect();
     const bottom = nav && getComputedStyle(nav).display !== 'none' ? nav.getBoundingClientRect().top : innerHeight;

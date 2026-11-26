@@ -472,7 +472,7 @@ body.dark .pt-ig-empty{color:#999}
 .pt-plan-note{font-size:12px;color:var(--muted);margin:0 0 10px;line-height:1.45}
 .pt-plan-fit{width:100%;margin:0 0 12px;min-height:42px;padding:10px 18px}
 .simple-tile{position:relative}
-.pt-slot-tag{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--c) 58%,transparent);color:#fff;font:600 13px "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.2px;pointer-events:none;text-shadow:0 1px 2px #0003;z-index:3}
+.pt-slot-tag{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.34);color:#fff;font:600 13px "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.2px;pointer-events:none;text-shadow:0 1px 2px #0003;z-index:3}
 .pt-slot-tag b,.pt-slot b{position:absolute;top:7px;left:8px;font-size:11px;font-weight:600;opacity:.85}
 .pt-slot{position:relative;aspect-ratio:3/4;min-width:0;background:var(--c);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:10px;text-align:center;border:0;border-radius:0}
 .pt-slot strong{font-size:14px;font-weight:700;letter-spacing:-.2px}
@@ -482,7 +482,7 @@ body.dark .pt-ig-empty{color:#999}
 @media (max-width:380px){.pt-slot small{display:none}}
 @media (hover:hover) and (pointer:fine) and (min-width:700px){.simple-mode .pt-plan-bar,.simple-mode .pt-plan-note,.simple-mode .pt-plan-fit{width:min(100%,calc((100dvh - 230px) * .75));margin-left:auto;margin-right:auto}}
 /* blurred example photo behind each empty plan frame: shows the mood, not the picture */
-.pt-slot{background-image:linear-gradient(color-mix(in srgb,var(--c) 66%,transparent),color-mix(in srgb,var(--c) 66%,transparent)),var(--bg,none);background-size:cover;background-position:center}
+.pt-slot{background-color:#3a3a3a;background-image:linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.42)),var(--bg,none);background-size:cover;background-position:center}
 /* home order (home.js) */
 .simple-app>.pt-ig{border-top:0;padding-top:4px;margin-top:0}
 .pt-ig-empty{display:none}
@@ -613,3 +613,6 @@ body.dark .pt-booth-stage>*{background:#222}
 .cl-nudge>button:first-child{flex:1;text-align:left;font:inherit;background:none;border:0;color:var(--ink);padding:0}.cl-nudge b{display:block;font-size:14px}.cl-nudge span{font-size:12px;color:var(--muted);text-decoration:underline}
 .cl-x{width:32px;height:32px;border-radius:50%;background:none;border:0;font-size:20px;color:var(--muted)}
 .native-setting-copy .pill+.pill{margin-top:10px}
+
+/* native app / home-screen app: keep content clear of the status bar */
+.simple-app{padding-top:calc(22px + env(safe-area-inset-top,0px))}
