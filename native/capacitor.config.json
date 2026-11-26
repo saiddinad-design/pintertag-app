@@ -1,0 +1,15 @@
+{
+  "appId": "com.pintertag.app",
+  "appName": "Pintertag",
+  "webDir": "www",
+  "backgroundColor": "#ffffff",
+  "ios": {
+    "contentInset": "never",
+    "scheme": "Pintertag",
+    "limitsNavigationsToAppBoundDomains": false
+  },
+  "plugins": {
+    "SplashScreen": { "launchAutoHide": false, "backgroundColor": "#ffffff", "showSpinner": false },
+    "LocalNotifications": { "presentationOptions": ["alert", "sound"] }
+  }
+}
