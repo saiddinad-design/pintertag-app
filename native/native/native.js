@@ -47,7 +47,9 @@
   const TAP = /^(s-accept|m-done|m-share|m-gc-keep|pt-plan-mode|pt-carousel-open|pt-fit-open|m-shot|pt-booth-open)$/;
   document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-action]'); if (b && Haptics && TAP.test(b.dataset.action)) Haptics.impact({ style: ImpactStyle.Light }).catch(() => {}); }, true);
   try { StatusBar && StatusBar.setStyle({ style: Style.Light }); } catch (_) {}
-  window.addEventListener('load', () => setTimeout(() => { try { SplashScreen && SplashScreen.hide(); } catch (_) {} }, 150));
+  /* hide the static launch logo at once, with no fade, so it never overlaps the animated intro */
+  const hideSplash = () => { try { SplashScreen && SplashScreen.hide({ fadeOutDuration: 0 }); } catch (_) {} };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hideSplash, { once: true }); else hideSplash();
   /* links that leave the app open in Safari */
   document.addEventListener('click', e => { const a = e.target.closest && e.target.closest('a[href^="http"]'); if (!a) return; e.preventDefault(); window.open(a.href, '_blank'); }, true);
 })();

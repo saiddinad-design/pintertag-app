@@ -19,7 +19,9 @@
   document.body.append(el);
   const word = el.querySelector('.pt-intro-word');
   const lock = el.querySelector('.pt-intro-lockup'); lock.style.setProperty('--shift', (word.offsetWidth / 2) + 'px'); void lock.getBoundingClientRect();
-  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('go')));
+  /* in the iPhone app, give the static launch logo a moment to clear so the two never show together */
+  const wait = document.documentElement.classList.contains('pt-native') ? 180 : 0;
+  setTimeout(() => requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('go'))), wait);
   let gone = false; const done = () => { if (gone) return; gone = true; el.classList.add('out'); setTimeout(() => el.remove(), 380); };
-  setTimeout(done, 2300); el.addEventListener('pointerdown', done); addEventListener('pagehide', () => el.remove(), { once: true });
+  setTimeout(done, 2300 + wait); el.addEventListener('pointerdown', done); addEventListener('pagehide', () => el.remove(), { once: true });
 })();
