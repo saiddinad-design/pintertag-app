@@ -4,7 +4,8 @@
 #   APPLE_TEAM_ID      10-character Team ID (developer.apple.com > Membership)
 #   ASC_KEY_ID         App Store Connect API key ID
 #   ASC_ISSUER_ID      App Store Connect API issuer ID
-#   ASC_KEY_P8_BASE64  the .p8 key file, base64-encoded
+#   ASC_KEY_P8         the .p8 key file contents, pasted as-is
+#   (ASC_KEY_P8_BASE64 base64 of the same file also works)
 name: iOS TestFlight
 on:
   workflow_dispatch:
@@ -34,7 +35,13 @@ jobs:
       - name: API key
         run: |
           mkdir -p ~/private_keys
-          echo "${{ secrets.ASC_KEY_P8_BASE64 }}" | base64 --decode > ~/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8
+          KEY_FILE=~/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8
+          if [ -n "$ASC_KEY_P8" ]; then printf '%s\n' "$ASC_KEY_P8" > "$KEY_FILE";
+          else echo "$ASC_KEY_P8_BASE64" | base64 --decode > "$KEY_FILE"; fi
+          grep -q "BEGIN PRIVATE KEY" "$KEY_FILE" || { echo "API key secret missing or malformed"; exit 1; }
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
       - name: Archive
         run: |
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
