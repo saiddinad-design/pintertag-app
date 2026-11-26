@@ -200,7 +200,7 @@
     if (all.length > SHOOT) toast(T(`İlk ${SHOOT} fotoğraf alındı.`, `Took the first ${SHOOT} photos.`));
     const sl = []; for (let k = 0; k < files.length; k++){ modal(T('çekim okunuyor.', 'reading your shoot.'), `<p class="edit-subtitle">${T(`${k + 1}/${files.length} fotoğraf ölçülüyor…`, `Measuring photo ${k + 1} of ${files.length}…`)}</p>`); try { sl.push(await load(files[k])); } catch (e) {} }
     if (sl.length < 2){ modal(T('fotoğraflar açılamadı.', 'couldn’t open the photos.'), `<p class="edit-subtitle">${T('JPG ya da PNG olarak tekrar dene.', 'Try again with JPG or PNG photos.')}</p>${action('pt-cc-shoot', T('Tekrar seç', 'Pick again'), 'pill solid wide space')}`); return; }
-    showShoot(shootPick(sl), sl); });
+    window.PTStats && PTStats.track('shoot'); showShoot(shootPick(sl), sl); });
 
   input.addEventListener('change', async () => {
     const files = [...input.files].filter(f => /^image\//.test(f.type)).slice(0, MAX); input.value = '';
@@ -209,7 +209,7 @@
     modal(T('karusel okunuyor.', 'reading your carousel.'), `<p class="edit-subtitle">${T(`${files.length} kare ölçülüyor…`, `Measuring ${files.length} slides…`)}</p>`);
     const slides = []; for (const f of files){ try { slides.push(await load(f)); } catch (e) {} }
     if (slides.length < 2){ modal(T('kareler açılamadı.', 'couldn’t open the slides.'), `<p class="edit-subtitle">${T('Fotoğrafları JPG ya da PNG olarak tekrar dene.', 'Try again with JPG or PNG photos.')}</p>${action('pt-cc-pick', T('Tekrar seç', 'Pick again'), 'pill solid wide space')}`); return; }
-    last = { slides, r: analyse(slides.map(s => s.m)) }; show(last.r, slides); });
+    last = { slides, r: analyse(slides.map(s => s.m)) }; window.PTStats && PTStats.track('carousel'); show(last.r, slides); });
 
   document.addEventListener('click', e => { const b = e.target.closest('[data-action]'); if (!b) return; const a = b.dataset.action;
     if (a === 'pt-carousel-open'){ e.stopPropagation(); intro(); }

@@ -39,7 +39,7 @@
     } finally { URL.revokeObjectURL(url); } }
 
   function judge(c, g){
-    const cur = g.slice(0, 9).map(p => p.m), now = PTScore.scoreGrid(cur), after = PTScore.scoreGrid([c.m, ...g.slice(0, 8).map(p => p.m)]);
+    window.PTStats && PTStats.track('fit'); const cur = g.slice(0, 9).map(p => p.m), now = PTScore.scoreGrid(cur), after = PTScore.scoreGrid([c.m, ...g.slice(0, 8).map(p => p.m)]);
     const b = now ? now.total : 0, a = after ? after.total : 0, why = [], fix = [];
     const gw = mean(cur.map(m => m.warm)), gs = mean(cur.map(m => m.sat)), gb = mean(cur.map(m => m.sharp)), gL = mean(cur.map(m => m.L));
     if (c.m.warm - gw > .06){ why.push(T('Grid’inden belirgin şekilde daha sıcak (sarı/turuncu).', 'Noticeably warmer (more yellow/orange) than your grid.')); fix.push(T('Beyaz dengesini biraz soğut.', 'Cool the white balance a little.')); }

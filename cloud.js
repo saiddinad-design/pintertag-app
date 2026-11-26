@@ -75,7 +75,7 @@
 
   /* first sign in on a device, or a newer copy from another device */
   let synced = null;
-  async function afterSignIn(){ if (!user || synced === user.id) return; synced = user.id; try { const row = await fetchRow(), m = meta(), mine = m.uid === user.id;
+  async function afterSignIn(){ if (!user || synced === user.id) return; synced = user.id; if (!meta().up) window.PTStats && PTStats.track('signup'); try { const row = await fetchRow(), m = meta(), mine = m.uid === user.id;
       if (!row){ await push(); say(tr('Hesabın hazır. Planın artık yedekleniyor.', 'Account ready. Your plan is backed up now.')); return; }
       if (typeof m.marketing !== 'boolean' && typeof row.marketing === 'boolean') setMeta({ marketing: row.marketing });
       const local = snapshot(), localHas = hasOwn(local), cloudHas = hasOwn(row.data || {});

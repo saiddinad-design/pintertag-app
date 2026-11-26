@@ -31,7 +31,7 @@ window.PT_STORE_URL = window.PT_STORE_URL || '';
       modal(T('grid bulunamadı.','couldn’t find a grid.'), `<p class="m-reason">${T('Bu görselde Instagram profil grid’i göremedim.','I couldn’t see an Instagram profile grid in this image.')}</p><ol class="m-steps"><li>${T('Instagram’da kendi profilini aç.','Open your own profile on Instagram.')}</li><li>${T('Biraz aşağı kaydır; grid ekranın çoğunu kaplasın.','Scroll a little so the grid fills most of the screen.')}</li><li>${T('Ekran görüntüsü al, buraya yükle. Daha fazla satır için 2–3 ekran görüntüsü ekleyebilirsin.','Take a screenshot and add it here. For more rows, add 2–3 screenshots.')}</li></ol>${action('m-shot', T('Tekrar dene','Try again'), 'pill solid wide')}`);
       return; }
     const tiles = r.tiles, ms = await toMs(tiles.slice(0, 9));
-    const sc = window.__PT.scoreGrid(ms), score = sc ? sc.total : 0, fl = window.__PT.flags(ms).map(f => f ? { d: f.d, key: 'gd.' + f.key } : null);
+    window.PTStats && PTStats.track('score'); const sc = window.__PT.scoreGrid(ms), score = sc ? sc.total : 0, fl = window.__PT.flags(ms).map(f => f ? { d: f.d, key: 'gd.' + f.key } : null);
     const vk = GC.vibeOf(ms), [vName, vLine] = GC.vibeText(vk), roast = GC.roastOf(ms, fl, score);
     last = { tiles, ratio: r.ratio, score, vk, vName, vLine, roast, flags: fl };
     show(); }
