@@ -6,7 +6,7 @@ BID=com.pintertag.app
 OUT=$RUNNER_TEMP/shots; mkdir -p "$OUT"
 RT=$(xcrun simctl list runtimes -j | python3 -c "import json,sys;r=[x for x in json.load(sys.stdin)['runtimes'] if x['platform']=='iOS' and x['isAvailable']];print(r[-1]['identifier'])")
 echo "runtime $RT"
-dt(){ xcrun simctl list devicetypes -j | python3 -c "import json,sys,re;p=sys.argv[1];d=[x for x in json.load(sys.stdin)['devicetypes'] if re.search(p,x['name'])];print(d[-1]['identifier'] if d else '')" "$1"; }
+dt(){ xcrun simctl list runtimes -j | python3 -c "import json,sys,re;p,rt=sys.argv[1],sys.argv[2];r=[x for x in json.load(sys.stdin)['runtimes'] if x['identifier']==rt][0];d=[x for x in r['supportedDeviceTypes'] if re.search(p,x['name'])];print(d[-1]['identifier'] if d else '')" "$1" "$RT"; }
 # photos for the library
 mkdir -p $RUNNER_TEMP/pics; i=0; for f in assets/inspo/brand-*.webp assets/inspo/personal-*.webp; do [ -f "$f" ] || continue; i=$((i+1)); sips -s format jpeg "$f" --out $RUNNER_TEMP/pics/p$i.jpg >/dev/null 2>&1; [ $i -ge 9 ] && break; done; ls $RUNNER_TEMP/pics | head
 shot(){ xcrun simctl io "$1" screenshot "$OUT/$2.png" >/dev/null 2>&1; axe describe-ui --udid "$1" > "$OUT/$2.ui.json" 2>/dev/null || true; echo "shot $2"; }
@@ -24,5 +24,5 @@ run(){ name=$1; pat=$2; size=$3; look=$4
   xcrun simctl shutdown "$U"; }
 run se      'iPhone SE'        accessibility-extra-extra-extra-large light
 run promax  'iPhone.*Pro Max'  large                                 dark
-run ipad    '^iPad \(|iPad Air' large                                light
+run ipad    '^iPad \\(A|^iPad Air' large                                light
 ls -la "$OUT"

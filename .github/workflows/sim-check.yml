@@ -1,7 +1,7 @@
 name: Simulator check
 on: workflow_dispatch
 permissions:
-  contents: read
+  contents: write
 jobs:
   sims:
     runs-on: macos-26
@@ -17,5 +17,8 @@ jobs:
         run: xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath $RUNNER_TEMP/dd CODE_SIGNING_ALLOWED=NO build -quiet
       - run: brew install cameroncooke/axe/axe >/dev/null 2>&1 || brew install axe >/dev/null 2>&1; which axe || echo "axe missing"
       - run: bash .github/scripts/sim_check.sh
-      - uses: actions/upload-artifact@v4
-        with: {name: shots, path: "${{ runner.temp }}/shots", retention-days: 7}
+      - name: Publish shots to the sim-shots branch
+        run: |
+          cd $RUNNER_TEMP/shots && git init -q && git checkout -q -b sim-shots && git add -A
+          git -c user.name=sim-check -c user.email=sim@users.noreply.github.com commit -qm "shots ${{ github.run_id }}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" sim-shots
