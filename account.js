@@ -96,12 +96,11 @@
       <h1>${T('e-postanla devam et.','continue with email.')}</h1><p class="pt-onb-sub">${T('Şifre yok. Bu sürümde hesabın yalnızca bu cihazda tutulur.','No password. In this version your account stays on this device.')}</p>
       <form id="pt-onb-form" novalidate><label class="control-label" for="pt-n">${T('Adın','Your name')}</label><input class="field" id="pt-n" name="name" autocomplete="name" maxlength="40">
       <label class="control-label" for="pt-e">${T('E-posta','Email')}</label><input class="field" id="pt-e" name="email" type="email" inputmode="email" autocomplete="email" required maxlength="80">
-      <div class="pt-onb-checks">${check('terms', T(`${legalLink('terms','Kullanım Koşulları')}’nı ve ${legalLink('privacy','Gizlilik Politikası')}’nı kabul ediyorum.`, `I accept the ${legalLink('terms','Terms')} and ${legalLink('privacy','Privacy Policy')}.`), false, true)}
-      ${check('ai', T('AI etiketleme: fotoğraf önizlemelerimin türlerini belirlemek için yurt dışındaki AI sağlayıcısına gönderilmesine açık rıza veriyorum. (İsteğe bağlı)','AI tagging: I consent to small previews of my photos being sent to the AI provider abroad to detect their type. (Optional)'), false)}
+      <div class="pt-onb-checks">${check('terms', T(`${legalLink('terms','Kullanım Koşulları')}’nı kabul ediyorum.`, `I accept the ${legalLink('terms','Terms')}.`), false, true)}
       ${check('mkt', T('Yenilik ve kampanyalardan e-postayla haberdar olmak istiyorum. (İsteğe bağlı)','Email me about news and offers. (Optional)'), false)}</div>
       <p class="pt-onb-err" id="pt-onb-err" role="alert"></p>
       <button class="pill solid wide" type="submit">${T('Devam et','Continue')}</button></form>
-      <p class="pt-onb-legal">${legalLink('kvkk', T('KVKK Aydınlatma Metni','KVKK notice'))}</p></div>`;
+      <p class="pt-onb-legal">${T('Verilerinin nasıl işlendiği:','How we handle your data:')} ${legalLink('privacy', T('Gizlilik Politikası','Privacy Policy'))} · ${legalLink('kvkk', T('KVKK Aydınlatma Metni','KVKK notice'))}</p></div>`;
       setTimeout(() => onb.querySelector('#pt-e')?.focus(), 50); return; }
     if (step === 'signup'){ onb.innerHTML = `<div class="pt-onb-in pt-onb-welcome"><button class="pt-onb-back" data-action="m-onb" data-step="welcome" aria-label="${T('Geri','Back')}">‹</button>
       <h1 class="pt-onb-mid">${pendingKeep ? T('grid’ini kaydet.','save your grid.') : T('giriş yap.','log in.')}</h1><p class="pt-onb-sub">${pendingKeep ? T('Puanın ve kareler hesabına eklenecek. Daha önce girdiysen aynı e-postayla gir; içeriklerin geri gelir.','Your score and posts go into your account. Been here before? Use the same email and your content comes back.') : T('Hesap aç ya da daha önce kullandığın e-postayla gir; içeriklerin geri gelir.','Create an account or use the email you used before; your content comes back.')}</p>
@@ -109,7 +108,7 @@
       <button class="pt-sso apple" data-action="m-onb-sso" data-p="Apple"><span aria-hidden="true"></span>${T('Apple ile devam et','Continue with Apple')}<em>${T('yakında','soon')}</em></button>
       <button class="pt-sso" data-action="m-onb-sso" data-p="Google"><span aria-hidden="true" class="g">G</span>${T('Google ile devam et','Continue with Google')}<em>${T('yakında','soon')}</em></button>
       <button class="pill solid wide" data-action="m-onb" data-step="email">${T('E-posta ile devam et','Continue with email')}</button></div>
-      <p class="pt-onb-legal">${T(`Devam ederek ${legalLink('terms','Kullanım Koşulları')}’nı ve ${legalLink('privacy','Gizlilik Politikası')}’nı kabul etmiş olursun. ${legalLink('kvkk','KVKK Aydınlatma Metni')}`, `By continuing you accept the ${legalLink('terms','Terms')} and ${legalLink('privacy','Privacy Policy')}. ${legalLink('kvkk','KVKK notice')}`)}</p></div>`; return; }
+      <p class="pt-onb-legal">${T(`Devam ederek ${legalLink('terms','Kullanım Koşulları')}’nı kabul etmiş olursun. Verilerinin nasıl işlendiği: ${legalLink('privacy','Gizlilik Politikası')} · ${legalLink('kvkk','KVKK Aydınlatma Metni')}`, `By continuing you accept the ${legalLink('terms','Terms')}. How we handle your data: ${legalLink('privacy','Privacy Policy')} · ${legalLink('kvkk','KVKK notice')}`)}</p></div>`; return; }
     onb.innerHTML = `<div class="pt-onb-in pt-onb-welcome"><p class="pt-onb-brand"><img class="pt-onb-logo" src="assets/logo.png" alt="">pintertag</p>
       <h1>${T('grid’in kaç puan?','what does your grid score?')}</h1>
       <p class="pt-onb-lead">${T('Instagram profilinin ekran görüntüsünü at. 10 saniyede puanını, vibe’ını ve neyi düzeltmen gerektiğini söyleyelim.' + (NO_ACCOUNTS ? ' Hesap yok, her şey telefonunda kalır.' : ' Kayıt sonra.'),'Drop a screenshot of your Instagram profile. In 10 seconds we’ll tell you your score, your vibe and what to fix.' + (NO_ACCOUNTS ? ' No account; everything stays on your phone.' : ' Sign-up comes later.'))}</p>
@@ -117,7 +116,7 @@
       <div class="pt-onb-actions"><button class="pt-onb-hero" data-action="m-shot"><span class="pt-onb-hero-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3.2"/></svg></span><span><b>${T('Grid’imi puanla','Score my grid')}</b><small>${T('Profil ekran görüntüsüyle · hiçbir yere yüklenmez','With a profile screenshot · nothing is uploaded')}</small></span></button>
       ${NO_ACCOUNTS ? `<button class="pill wide" data-action="m-onb-guest">${T('Fotoğraflarınla başla','Start with your photos')}</button>` : `<button class="pill wide" data-action="m-onb" data-step="signup">${T('Giriş yap ya da hesap aç','Log in or create an account')}</button>
       <button class="text-button wide" data-action="m-onb-guest">${T('Hesapsız dene','Try without an account')}</button>`}</div>
-      <p class="pt-onb-legal">${T(`Devam ederek ${legalLink('terms','Kullanım Koşulları')}’nı ve ${legalLink('privacy','Gizlilik Politikası')}’nı kabul etmiş olursun. ${legalLink('kvkk','KVKK Aydınlatma Metni')}`, `By continuing you accept the ${legalLink('terms','Terms')} and ${legalLink('privacy','Privacy Policy')}. ${legalLink('kvkk','KVKK notice')}`)}</p></div>`; }
+      <p class="pt-onb-legal">${T(`Devam ederek ${legalLink('terms','Kullanım Koşulları')}’nı kabul etmiş olursun. Verilerinin nasıl işlendiği: ${legalLink('privacy','Gizlilik Politikası')} · ${legalLink('kvkk','KVKK Aydınlatma Metni')}`, `By continuing you accept the ${legalLink('terms','Terms')}. How we handle your data: ${legalLink('privacy','Privacy Policy')} · ${legalLink('kvkk','KVKK notice')}`)}</p></div>`; }
   function closeOnb(){ if (onb){ onb.remove(); onb = null; } document.body.classList.remove('pt-onb-open'); render(); keepImport(); if (!FREE_LAUNCH && !sub().trialUsed && !state.trialOffered){ state.trialOffered = true; save(); setTimeout(() => paywall('onboard'), 250); } }
   function submitOnb(f){ const name = f.name.value.trim(), email = f.email.value.trim(), err = f.querySelector('#pt-onb-err') || document.getElementById('pt-onb-err');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ err.textContent = T('Geçerli bir e-posta yaz.','Enter a valid email.'); f.email.focus(); return; }
@@ -126,7 +125,7 @@
       login({ name: (prev && prev.__acct && prev.__acct.name) || name || email.split('@')[0], email, method: 'email', created: (prev && prev.__acct && prev.__acct.created) || Date.now() })
         .then(() => { closeOnb(); render(); toast(T(`Tekrar hoş geldin, ${state.account.name}. Her şey yerinde.`, `Welcome back, ${state.account.name}. Everything’s where you left it.`)); }); return; }
     state.account = { name: name || email.split('@')[0], email, method: 'email', created: Date.now() };
-    state.guest = false; state.aiConsent = f.ai.checked; state.consent = { terms: Date.now(), marketing: f.mkt.checked, ai: f.ai.checked ? Date.now() : null };
+    state.guest = false; state.aiConsent = true; state.consent = { terms: Date.now(), marketing: f.mkt.checked };
     save(); closeOnb(); toast(T(`Hoş geldin, ${state.account.name}.`, `Welcome, ${state.account.name}.`)); }
 
   /* ---------- grid check before sign-up: the result asks to be saved ---------- */

@@ -112,7 +112,7 @@
       <label class="m-check"><input type="checkbox" name="consent" required ${back ? 'checked' : ''}><span>${tr('Yedeğimin AB’deki (İrlanda) sunucuda saklanmasına açık rıza veriyorum.', 'I consent to my backup being stored on a server in the EU (Ireland).')}</span></label>
       ${back ? '' : `<label class="m-check"><input type="checkbox" name="mk"><span>${tr('Yeni özellikleri e-postayla almak istiyorum.', 'Email me new features.')}</span></label>`}
       <button class="pill solid wide" type="submit">${tr('E-postama kod gönder', 'Email me a code')}</button>
-      <p class="cl-note">${tr('Şifre yok, ücret yok. Devam edersen ', 'No password, no fee. By continuing you accept the ')}<button type="button" class="cl-link" data-action="m-legal" data-doc="terms">${tr('Kullanım Koşulları', 'Terms')}</button>${tr(' ve ', ' and ')}<button type="button" class="cl-link" data-action="m-legal" data-doc="privacy">${tr('Gizlilik', 'Privacy')}</button>${tr(' metnini kabul edersin.', ' notice.')}</p></form>`); }
+      <p class="cl-note">${tr('Şifre yok, ücret yok. Devam edersen ', 'No password, no fee. By continuing you accept the ')}<button type="button" class="cl-link" data-action="m-legal" data-doc="terms">${tr('Kullanım Koşulları', 'Terms')}</button>${tr('’nı kabul edersin. Verilerinin nasıl işlendiği: ', '. How we handle your data: ')}<button type="button" class="cl-link" data-action="m-legal" data-doc="privacy">${tr('Gizlilik Politikası', 'Privacy Policy')}</button>.</p></form>`); }
   function stateLine(){ const m = meta();
     if (status === 'saving' || status === 'loading') return tr('Yedekleniyor…', 'Backing up…');
     if (status === 'error') return tr('Yedeklenemedi. İnternetini kontrol et.', 'Backup failed. Check your connection.');
