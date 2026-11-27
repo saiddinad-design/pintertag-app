@@ -1,0 +1,21 @@
+name: Simulator check
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  sims:
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - run: sudo xcode-select -s "$(ls -d /Applications/Xcode_2[6-9]*.app | grep -iv beta | sort -V | tail -1)" && xcodebuild -version
+      - working-directory: native
+        run: npm ci --no-audit --no-fund && npm run sync
+      - working-directory: native
+        run: xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath $RUNNER_TEMP/dd CODE_SIGNING_ALLOWED=NO build -quiet
+      - run: brew install cameroncooke/axe/axe >/dev/null 2>&1 || brew install axe >/dev/null 2>&1; which axe || echo "axe missing"
+      - run: bash .github/scripts/sim_check.sh
+      - uses: actions/upload-artifact@v4
+        with: {name: shots, path: "${{ runner.temp }}/shots", retention-days: 7}
