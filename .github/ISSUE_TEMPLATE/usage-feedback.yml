@@ -1,0 +1,47 @@
+name: Usage and feedback
+description: Ran it on your app? Share what the agents found and what got in the way.
+title: "[Usage] "
+labels: ["usage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for trying it. This issue is public: leave out anything private about your app (report contents you would not post, screenshots of unreleased screens, tokens).
+  - type: dropdown
+    id: stack
+    attributes:
+      label: Your app
+      options:
+        - Flutter
+        - React Native
+        - Expo
+        - Native Kotlin or Java
+        - Native Swift or Objective-C
+        - Kotlin Multiplatform
+        - Capacitor or Ionic
+        - .NET MAUI
+        - Prebuilt APK or .app
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: phones
+    attributes:
+      label: Phones
+      placeholder: "4: 2 Android, 2 iOS"
+  - type: textarea
+    id: found
+    attributes:
+      label: What did the agents find?
+      description: How many issues, how many were real, the best catch, the false alarms.
+    validations:
+      required: true
+  - type: textarea
+    id: setup
+    attributes:
+      label: What got in the way?
+      description: The step where you got stuck, an error message, something the README did not say.
+  - type: input
+    id: link
+    attributes:
+      label: App or run link (optional)

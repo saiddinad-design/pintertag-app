@@ -1,0 +1,58 @@
+# Checks on a real Android emulator that the robot with no model (scripts/android/crawl.py)
+# maps Tiny Todo: it must pass the sign-up form, find the two screens, never delete a
+# task, and each start of the app it wrote as a trace must replay with no model.
+# No model, no secret, only free runner time (about twenty minutes).
+# Started by hand: gh workflow run map-check.yml
+
+name: Map check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      MAESTRO_VERSION: 2.12.1
+      MAESTRO_CLI_NO_ANALYTICS: 1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Explore-Compile-Replay
+        uses: actions/checkout@v4
+        with:
+          repository: pierridotite/explore-compile-replay
+          ref: f89aa1343119a0b95d95a9342e558b2d6db847ec
+          path: .ecr
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "17" }
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build the demo app
+        run: bash scripts/build/android.sh demo-app expo || { tail -n 40 results/build-android.log; exit 1; }
+      - name: Explore-Compile-Replay and Maestro
+        run: |
+          pip install -q pillow
+          npm install -g --silent pnpm@10 && (cd .ecr && pnpm install --frozen-lockfile --silent)
+          curl -fsSL "https://get.maestro.mobile.dev" | bash >/dev/null
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - name: Emulator, the robot, then the replay
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          ram-size: 4096M
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: bash scripts/android/map_check.sh app.apk .ecr

@@ -1,0 +1,41 @@
+name: Hosted version for teams
+description: Three questions about a hosted version with macOS runners for private repos and a shared dashboard.
+title: "[Teams] "
+labels: ["teams"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        I'm exploring a hosted version for teams. Three questions, one minute. This issue is public: write to me on [LinkedIn](https://www.linkedin.com/in/pierre-raffalli/) for anything you would rather not post here.
+  - type: dropdown
+    id: team
+    attributes:
+      label: How many mobile developers on your team?
+      options:
+        - "1"
+        - 2 to 5
+        - 6 to 20
+        - More than 20
+    validations:
+      required: true
+  - type: dropdown
+    id: stack
+    attributes:
+      label: Your stack
+      multiple: true
+      options:
+        - Flutter
+        - React Native or Expo
+        - Native iOS
+        - Native Android
+        - Kotlin Multiplatform
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: blocker
+    attributes:
+      label: What stops you from running it in your CI today?
+      description: macOS minutes on a private repo, sharing the reports with the team, setup time, a security review, model costs...
+    validations:
+      required: true

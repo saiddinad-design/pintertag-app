@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "mobile-agent-testers"
+abstract: "AI testers for iOS and Android apps on GitHub Actions. Each agent plays a persona on its own simulator or emulator and reports what gets in the way."
+authors:
+  - family-names: Raffalli
+    given-names: Pierre
+repository-code: "https://github.com/pierridotite/mobile-agent-testers"
+license: MIT
+keywords:
+  - mobile testing
+  - agents
+  - accessibility
+  - GitHub Actions

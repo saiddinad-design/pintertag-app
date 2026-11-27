@@ -1,0 +1,12 @@
+{
+  "name": "mobile-agent-testers",
+  "description": "AI testers that use your mobile app on many iOS Simulators and Android emulators at once, on GitHub Actions",
+  "owner": { "name": "pierridotite" },
+  "plugins": [
+    {
+      "name": "mobile-agent-testers",
+      "source": "./plugins/mobile-agent-testers",
+      "description": "Set up and run parallel AI testers (one Claude Code agent per phone, with personas) for an iOS/Android app"
+    }
+  ]
+}

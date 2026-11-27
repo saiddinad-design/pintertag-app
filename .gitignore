@@ -1,0 +1,10 @@
+# Never commit the private key that decrypts results
+*_private.pem
+*.key
+/runs/
+node_modules/
+demo-app/android/
+demo-app/ios/
+demo-app/.expo/
+.DS_Store
+__pycache__/

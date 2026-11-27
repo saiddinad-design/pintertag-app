@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Stands in front of adb while an agent explores. It notes each input command
+# (tap, swipe, key, text) and each launch of an app (monkey, am) in $ECR_ACTION_LOG,
+# then runs the real adb unchanged.
+# The agent's tools and brief stay the same: scripts/ecr_trace.py reads the notes later.
+# Noting must never break a command: any failure to write is ignored.
+if [ -n "${ECR_ACTION_LOG:-}" ] && [ -z "${ECR_SHIM_QUIET:-}" ] && [ "${1:-}" = shell ]; then
+  case "${2:-}" in input*|monkey*|am|"am "*)
+    # An agent often taps several times after one look. The screen tree is then saved
+    # again just before the tap, so the tap is named after what is under the finger
+    # now, not after what was there at the last screenshot. Before a launch, the tree
+    # says whether the app was still in front.
+    save=""
+    case "${2:-}" in
+      input*) case " $* " in *" tap "*|*" swipe "*) save=1 ;; esac ;;
+      *) save=1 ;;
+    esac
+    limit=""; command -v timeout >/dev/null 2>&1 && limit="timeout 10"
+    # Before Back: was the keyboard open? Back then only closes it, and the trace writes
+    # hideKeyboard, which a replay does only while a keyboard is on the screen: after typing,
+    # the keyboard of a replay can be closed already, and Back would leave the screen.
+    case " $* " in *" keyevent "*)
+      case " $* " in *" 4 "*|*" KEYCODE_BACK "*)
+        case "$($limit "$ECR_REAL_ADB" shell dumpsys input_method 2>/dev/null)" in
+          *mInputShown=true*) printf '%s\tkeyboard\tshown\n' "$(date +%s)" >> "$ECR_ACTION_LOG" 2>/dev/null || true ;;
+          *mInputShown=false*) printf '%s\tkeyboard\thidden\n' "$(date +%s)" >> "$ECR_ACTION_LOG" 2>/dev/null || true ;;
+        esac ;;
+      esac ;;
+    esac
+    if [ -n "$save" ] && [ "$(tail -n 1 "$ECR_ACTION_LOG" 2>/dev/null | cut -f2)" != screen ]; then
+      tree="${ECR_ACTION_LOG%/*}/tree-$(wc -l < "$ECR_ACTION_LOG" 2>/dev/null | tr -d ' ').xml"
+      # Out of the shared storage, so that the app never shows the file in a picker
+      $limit "$ECR_REAL_ADB" shell "rm -f /data/local/tmp/ecr-tree.xml; uiautomator dump /data/local/tmp/ecr-tree.xml" >/dev/null 2>&1
+      $limit "$ECR_REAL_ADB" exec-out cat /data/local/tmp/ecr-tree.xml > "$tree" 2>/dev/null
+      if head -c 5 "$tree" 2>/dev/null | grep -q '<?xml'; then
+        printf '%s\ttree\t%s\n' "$(date +%s)" "$tree" >> "$ECR_ACTION_LOG" 2>/dev/null || true
+      else
+        rm -f "$tree" 2>/dev/null
+      fi
+    fi
+    { printf '%s\tadb' "$(date +%s)"; printf '\t%s' "$@"; printf '\n'; } >> "$ECR_ACTION_LOG" 2>/dev/null || true ;;
+  esac
+fi
+exec "${ECR_REAL_ADB:?ECR_REAL_ADB must point to the real adb}" "$@"

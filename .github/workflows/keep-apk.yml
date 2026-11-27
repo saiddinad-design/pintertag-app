@@ -1,0 +1,110 @@
+# Keeps the APK that an earlier run built, so that later runs replay on the same bytes:
+# a build from source can give another APK from one run to the next.
+# A run keeps its APK for 3 days only, encrypted with the ARTIFACT_PASSPHRASE secret.
+# This job takes it from that run, decrypts it, checks its SHA-256 and attaches it, with
+# the license files of the app's source, to a pre-release on an existing tag. A later run
+# downloads it with android_build="curl -fsSL -o app.apk <URL>" and apk_path=app.apk.
+# The APK becomes public: only for an open source app whose license lets you share it.
+# Started by hand, free:
+#   gh workflow run keep-apk.yml -f run_id=<run> -f sha256=<sha> -f tag=<existing tag> \
+#     -f source_repo=<owner/app> -f source_commit=<commit> -f file_name=<name>.apk
+name: Keep an APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: The run that built the APK (within 3 days, before its app-android artifact expires)
+        required: true
+      sha256:
+        description: The APK's SHA-256, as that run's page prints it
+        required: true
+      tag:
+        description: An existing tag of this repository, for the pre-release
+        required: true
+      source_repo:
+        description: The app's public source repository (owner/name), whose license files join the APK
+        required: true
+      source_commit:
+        description: The commit of the app that was built
+        required: true
+      file_name:
+        description: Name of the APK in the pre-release, ending in .apk
+        required: true
+
+permissions:
+  contents: write   # the pre-release on the existing tag
+  actions: read     # the artifact of the other run
+
+jobs:
+  keep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check the inputs
+        env:
+          RUN: ${{ inputs.run_id }}
+          SHA: ${{ inputs.sha256 }}
+          TAG: ${{ inputs.tag }}
+          SOURCE: ${{ inputs.source_repo }}
+          COMMIT: ${{ inputs.source_commit }}
+          FILE: ${{ inputs.file_name }}
+        run: |
+          fail() { echo "::error::$1"; exit 1; }
+          [[ "$RUN" =~ ^[0-9]+$ ]] || fail "run_id is a number"
+          [[ "$SHA" =~ ^[0-9a-f]{64}$ ]] || fail "sha256 is 64 hexadecimal characters"
+          [[ "$TAG" =~ ^[A-Za-z0-9._][A-Za-z0-9._/-]*$ ]] || fail "tag is a tag name"
+          [[ "$SOURCE" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || fail "source_repo is owner/name"
+          [[ "$COMMIT" =~ ^[0-9a-f]{7,40}$ ]] || fail "source_commit is a commit SHA"
+          [[ "$FILE" =~ ^[A-Za-z0-9._-]+\.apk$ ]] || fail "file_name is a file name ending in .apk"
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-android
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+          path: in
+      - name: Decrypt and check the APK
+        env:
+          ARTIFACT_PASSPHRASE: ${{ secrets.ARTIFACT_PASSPHRASE }}
+          WANT: ${{ inputs.sha256 }}
+          FILE: ${{ inputs.file_name }}
+        run: |
+          mkdir -p out
+          openssl enc -d -aes-256-cbc -pbkdf2 -in in/app.apk.enc -out "out/$FILE" -pass env:ARTIFACT_PASSPHRASE
+          GOT=$(sha256sum "out/$FILE" | cut -d' ' -f1)
+          [ "$GOT" = "$WANT" ] || { echo "::error::the APK's SHA-256 is $GOT, not the one given"; exit 1; }
+          echo "APK SHA-256 $GOT"
+      - name: License files of the source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE: ${{ inputs.source_repo }}
+          COMMIT: ${{ inputs.source_commit }}
+        run: |
+          gh api "repos/$SOURCE/license?ref=$COMMIT" > license.json || { echo "::error::no license found in $SOURCE at $COMMIT"; exit 1; }
+          NAME=$(jq -r '.path | split("/") | last' license.json)
+          jq -r .content license.json | base64 -d > "out/$NAME"
+          jq -r '.license.spdx_id' license.json > spdx.txt
+          if gh api "repos/$SOURCE/contents/NOTICE?ref=$COMMIT" > notice.json 2>/dev/null; then
+            jq -r .content notice.json | base64 -d > out/NOTICE
+          fi
+          ls out
+      - name: Pre-release on the tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN: ${{ inputs.run_id }}
+          SHA: ${{ inputs.sha256 }}
+          TAG: ${{ inputs.tag }}
+          SOURCE: ${{ inputs.source_repo }}
+          COMMIT: ${{ inputs.source_commit }}
+          FILE: ${{ inputs.file_name }}
+        run: |
+          {
+            echo "The APK that run [$RUN](https://github.com/$GITHUB_REPOSITORY/actions/runs/$RUN) built from [$SOURCE](https://github.com/$SOURCE) at \`$COMMIT\`, kept so that later runs replay on the same bytes."
+            echo
+            echo "This is not an official release of $SOURCE. It is the unmodified binary of an evaluation, shared under the license of its source ($(cat spdx.txt)), whose files are attached."
+            echo
+            echo "SHA-256 of $FILE: \`$SHA\`"
+          } > notes.md
+          gh release create "$TAG" out/* --repo "$GITHUB_REPOSITORY" --verify-tag --prerelease \
+            --title "APK kept for replays: $SOURCE at ${COMMIT:0:7}" --notes-file notes.md
+          echo "APK kept: https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/$FILE" | tee -a "$GITHUB_STEP_SUMMARY"

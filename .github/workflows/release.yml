@@ -1,0 +1,36 @@
+# Publishes a GitHub release with that version's section of CHANGELOG.md as notes.
+# Either push a tag (git tag v0.2.0 && git push origin v0.2.0), or run this workflow
+# from the Actions tab: it tags main with the latest version of CHANGELOG.md.
+name: Release
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish, like 0.2.0 (empty: the latest one in CHANGELOG.md)"
+        required: false
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Notes from CHANGELOG.md
+        env: { INPUT_VERSION: "${{ inputs.version }}" }
+        run: |
+          if [ "$GITHUB_REF_TYPE" = tag ]; then V="${GITHUB_REF_NAME#v}"; else V="${INPUT_VERSION#v}"; fi
+          [ -n "$V" ] || V=$(sed -n 's/^## \([0-9][0-9.]*\) .*/\1/p' CHANGELOG.md | head -1)
+          echo "TAG=v$V" >> "$GITHUB_ENV"
+          export TAG="v$V"
+          awk -v v="$V" '/^## /{p = index($0, "## " v " ") == 1; next} p' CHANGELOG.md \
+            | perl -pe 's{\]\((?!https?://|#)(?:\./)?([^)]+)\)}{](https://github.com/$ENV{GITHUB_REPOSITORY}/blob/$ENV{TAG}/$1)}g' \
+            > notes.md
+          grep -q . notes.md || { echo "No section for $V in CHANGELOG.md"; exit 1; }
+          cat notes.md
+      - name: Release
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then echo "$TAG is already released"; exit 0; fi
+          gh release create "$TAG" --target "$GITHUB_SHA" --title "$TAG" --notes-file notes.md

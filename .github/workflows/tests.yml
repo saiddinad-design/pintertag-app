@@ -1,0 +1,31 @@
+# Checks the scripts the testers rely on, on every push and pull request.
+# Offline and free: no phone, no model, no secret.
+name: Tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  scripts:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { python: "3.9", os: ubuntu-24.04 }   # the python3 of a Mac without Homebrew, where collect.sh runs
+          - { python: "3.13", os: ubuntu-latest }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "${{ matrix.python }}" }
+      - name: Unit tests (accessibility check, persona matrix, personas, summary, encrypted results)
+        run: python3 -m unittest discover -s tests -v
+      - name: Every Python script compiles
+        run: python3 -m compileall -q scripts tests
+      - name: Shell scripts
+        if: matrix.python == '3.13'
+        run: |
+          for f in $(git ls-files '*.sh'); do bash -n "$f"; done
+          shellcheck -S warning $(git ls-files '*.sh')
