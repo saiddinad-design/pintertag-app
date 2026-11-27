@@ -24,5 +24,5 @@ run(){ name=$1; pat=$2; size=$3; look=$4
   xcrun simctl shutdown "$U"; }
 run se      'iPhone SE'        accessibility-extra-extra-extra-large light
 run promax  'iPhone.*Pro Max'  large                                 dark
-run ipad    '^iPad \\(A|^iPad Air' large                                light
+run ipad    '^iPad \(A|^iPad Air' large                                light
 ls -la "$OUT"
