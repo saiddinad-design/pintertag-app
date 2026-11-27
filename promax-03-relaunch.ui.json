@@ -1,0 +1,530 @@
+[
+  {
+    "traits" : [
+
+    ],
+    "help" : null,
+    "enabled" : true,
+    "subrole" : null,
+    "AXFrame" : "{{0, 0}, {414, 896}}",
+    "title" : null,
+    "frame" : {
+      "width" : 414,
+      "height" : 896,
+      "x" : 0,
+      "y" : 0
+    },
+    "AXLabel" : "Pintertag",
+    "pid" : 26533,
+    "children" : [
+      {
+        "traits" : [
+
+        ],
+        "custom_actions" : [
+
+        ],
+        "frame" : {
+          "width" : 414,
+          "height" : 896,
+          "x" : 0,
+          "y" : 0
+        },
+        "children" : [
+          {
+            "role" : "AXGroup",
+            "role_description" : "group",
+            "enabled" : true,
+            "type" : "Group",
+            "AXValue" : null,
+            "subrole" : null,
+            "AXFrame" : "{{0, 0}, {414, 896}}",
+            "AXLabel" : null,
+            "custom_actions" : [
+
+            ],
+            "frame" : {
+              "width" : 414,
+              "height" : 896,
+              "x" : 0,
+              "y" : 0
+            },
+            "AXUniqueId" : null,
+            "title" : null,
+            "help" : null,
+            "traits" : [
+
+            ],
+            "content_required" : false,
+            "pid" : 26533,
+            "children" : [
+              {
+                "type" : "Group",
+                "frame" : {
+                  "width" : 414,
+                  "height" : 896,
+                  "x" : 0,
+                  "y" : 0
+                },
+                "help" : null,
+                "AXFrame" : "{{0, 0}, {414, 896}}",
+                "enabled" : true,
+                "pid" : 26533,
+                "custom_actions" : [
+
+                ],
+                "children" : [
+                  {
+                    "subrole" : null,
+                    "AXLabel" : null,
+                    "traits" : [
+
+                    ],
+                    "frame" : {
+                      "width" : 414,
+                      "height" : 896,
+                      "x" : 0,
+                      "y" : 0
+                    },
+                    "children" : [
+                      {
+                        "role_description" : "Group",
+                        "content_required" : false,
+                        "help" : null,
+                        "frame" : {
+                          "width" : 414,
+                          "height" : 896,
+                          "x" : 0,
+                          "y" : 0
+                        },
+                        "type" : "ScrollArea",
+                        "custom_actions" : [
+
+                        ],
+                        "pid" : 26533,
+                        "AXUniqueId" : null,
+                        "enabled" : true,
+                        "AXValue" : null,
+                        "traits" : [
+
+                        ],
+                        "title" : null,
+                        "AXLabel" : null,
+                        "children" : [
+                          {
+                            "AXFrame" : "{{0, 0}, {414, 896}}",
+                            "frame" : {
+                              "width" : 414,
+                              "height" : 896,
+                              "x" : 0,
+                              "y" : 0
+                            },
+                            "title" : null,
+                            "enabled" : true,
+                            "AXValue" : null,
+                            "role_description" : "group",
+                            "custom_actions" : [
+
+                            ],
+                            "type" : "Group",
+                            "help" : null,
+                            "pid" : 26533,
+                            "traits" : [
+
+                            ],
+                            "content_required" : false,
+                            "role" : "AXGroup",
+                            "AXLabel" : null,
+                            "children" : [
+
+                            ],
+                            "subrole" : null,
+                            "AXUniqueId" : null
+                          },
+                          {
+                            "children" : [
+                              {
+                                "help" : null,
+                                "type" : "Group",
+                                "title" : null,
+                                "content_required" : false,
+                                "frame" : {
+                                  "width" : 3,
+                                  "height" : 7,
+                                  "x" : 408,
+                                  "y" : 854.66666666666663
+                                },
+                                "AXLabel" : null,
+                                "pid" : 26533,
+                                "enabled" : true,
+                                "custom_actions" : [
+
+                                ],
+                                "role" : "AXGroup",
+                                "AXValue" : null,
+                                "children" : [
+
+                                ],
+                                "AXUniqueId" : null,
+                                "role_description" : "group",
+                                "traits" : [
+
+                                ],
+                                "subrole" : null,
+                                "AXFrame" : "{{408, 854.66666666666663}, {3, 7}}"
+                              }
+                            ],
+                            "content_required" : false,
+                            "custom_actions" : [
+
+                            ],
+                            "AXLabel" : "Vertical scroll bar, 2 pages",
+                            "role_description" : "slider",
+                            "traits" : [
+
+                            ],
+                            "role" : "AXSlider",
+                            "AXFrame" : "{{381, 39}, {30, 818}}",
+                            "AXValue" : "0%",
+                            "type" : "Slider",
+                            "title" : null,
+                            "frame" : {
+                              "width" : 30,
+                              "height" : 818,
+                              "x" : 381,
+                              "y" : 39
+                            },
+                            "subrole" : null,
+                            "pid" : 26533,
+                            "help" : null,
+                            "enabled" : true,
+                            "AXUniqueId" : null
+                          },
+                          {
+                            "title" : null,
+                            "AXUniqueId" : null,
+                            "AXFrame" : "{{39, 863}, {336, 30}}",
+                            "content_required" : false,
+                            "enabled" : true,
+                            "custom_actions" : [
+
+                            ],
+                            "pid" : 26533,
+                            "children" : [
+                              {
+                                "pid" : 26533,
+                                "type" : "Group",
+                                "role_description" : "group",
+                                "children" : [
+
+                                ],
+                                "AXFrame" : "{{372.66666666666669, 890}, {7, 3}}",
+                                "title" : null,
+                                "frame" : {
+                                  "width" : 7,
+                                  "height" : 3,
+                                  "x" : 372.66666666666669,
+                                  "y" : 890
+                                },
+                                "traits" : [
+
+                                ],
+                                "role" : "AXGroup",
+                                "enabled" : true,
+                                "AXUniqueId" : null,
+                                "subrole" : null,
+                                "custom_actions" : [
+
+                                ],
+                                "content_required" : false,
+                                "AXLabel" : null,
+                                "help" : null,
+                                "AXValue" : null
+                              }
+                            ],
+                            "type" : "Slider",
+                            "frame" : {
+                              "width" : 336,
+                              "height" : 30,
+                              "x" : 39,
+                              "y" : 863
+                            },
+                            "AXValue" : "0%",
+                            "subrole" : null,
+                            "traits" : [
+
+                            ],
+                            "help" : null,
+                            "role" : "AXSlider",
+                            "AXLabel" : "Horizontal scroll bar, 1 page",
+                            "role_description" : "slider"
+                          },
+                          {
+                            "subrole" : null,
+                            "help" : null,
+                            "content_required" : false,
+                            "enabled" : true,
+                            "type" : "Slider",
+                            "AXFrame" : "{{381, 39}, {30, 818}}",
+                            "AXValue" : "0%",
+                            "title" : null,
+                            "pid" : 26533,
+                            "AXLabel" : "Vertical scroll bar, 2 pages",
+                            "children" : [
+                              {
+                                "enabled" : true,
+                                "custom_actions" : [
+
+                                ],
+                                "role" : "AXGroup",
+                                "AXValue" : null,
+                                "children" : [
+
+                                ],
+                                "title" : null,
+                                "traits" : [
+
+                                ],
+                                "type" : "Group",
+                                "content_required" : false,
+                                "role_description" : "group",
+                                "frame" : {
+                                  "width" : 3,
+                                  "height" : 7,
+                                  "x" : 408,
+                                  "y" : 854.66666666666663
+                                },
+                                "subrole" : null,
+                                "pid" : 26533,
+                                "AXUniqueId" : null,
+                                "AXLabel" : null,
+                                "AXFrame" : "{{408, 854.66666666666663}, {3, 7}}",
+                                "help" : null
+                              }
+                            ],
+                            "role_description" : "slider",
+                            "frame" : {
+                              "width" : 30,
+                              "height" : 818,
+                              "x" : 381,
+                              "y" : 39
+                            },
+                            "custom_actions" : [
+
+                            ],
+                            "traits" : [
+
+                            ],
+                            "AXUniqueId" : null,
+                            "role" : "AXSlider"
+                          },
+                          {
+                            "pid" : 26533,
+                            "type" : "Slider",
+                            "traits" : [
+
+                            ],
+                            "AXLabel" : "Horizontal scroll bar, 1 page",
+                            "frame" : {
+                              "width" : 336,
+                              "height" : 30,
+                              "x" : 39,
+                              "y" : 863
+                            },
+                            "enabled" : true,
+                            "AXUniqueId" : null,
+                            "AXValue" : "0%",
+                            "children" : [
+                              {
+                                "pid" : 26533,
+                                "title" : null,
+                                "role_description" : "group",
+                                "type" : "Group",
+                                "enabled" : true,
+                                "custom_actions" : [
+
+                                ],
+                                "help" : null,
+                                "role" : "AXGroup",
+                                "traits" : [
+
+                                ],
+                                "AXFrame" : "{{372.66666666666669, 890}, {7, 3}}",
+                                "AXUniqueId" : null,
+                                "subrole" : null,
+                                "AXValue" : null,
+                                "children" : [
+
+                                ],
+                                "content_required" : false,
+                                "frame" : {
+                                  "width" : 7,
+                                  "height" : 3,
+                                  "x" : 372.66666666666669,
+                                  "y" : 890
+                                },
+                                "AXLabel" : null
+                              }
+                            ],
+                            "content_required" : false,
+                            "AXFrame" : "{{39, 863}, {336, 30}}",
+                            "title" : null,
+                            "role" : "AXSlider",
+                            "role_description" : "slider",
+                            "help" : null,
+                            "custom_actions" : [
+
+                            ],
+                            "subrole" : null
+                          }
+                        ],
+                        "subrole" : null,
+                        "role" : "AXScrollArea",
+                        "AXFrame" : "{{0, 0}, {414, 896}}"
+                      }
+                    ],
+                    "AXFrame" : "{{0, 0}, {414, 896}}",
+                    "role" : "AXGroup",
+                    "enabled" : true,
+                    "AXUniqueId" : null,
+                    "type" : "Group",
+                    "help" : null,
+                    "AXValue" : null,
+                    "title" : null,
+                    "custom_actions" : [
+
+                    ],
+                    "role_description" : "group",
+                    "pid" : 26533,
+                    "content_required" : false
+                  }
+                ],
+                "content_required" : false,
+                "subrole" : null,
+                "traits" : [
+
+                ],
+                "role_description" : "group",
+                "AXLabel" : null,
+                "AXUniqueId" : null,
+                "AXValue" : null,
+                "role" : "AXGroup",
+                "title" : null
+              }
+            ]
+          }
+        ],
+        "pid" : 26533,
+        "AXFrame" : "{{0, 0}, {414, 896}}",
+        "AXLabel" : null,
+        "role_description" : "group",
+        "role" : "AXGroup",
+        "title" : null,
+        "type" : "Group",
+        "subrole" : null,
+        "help" : null,
+        "AXUniqueId" : null,
+        "content_required" : false,
+        "AXValue" : null,
+        "enabled" : true
+      },
+      {
+        "traits" : [
+
+        ],
+        "children" : [
+          {
+            "subrole" : null,
+            "frame" : {
+              "width" : 414,
+              "height" : 896,
+              "x" : 0,
+              "y" : 0
+            },
+            "role_description" : "group",
+            "type" : "Group",
+            "enabled" : true,
+            "help" : null,
+            "children" : [
+              {
+                "traits" : [
+
+                ],
+                "enabled" : true,
+                "AXUniqueId" : null,
+                "custom_actions" : [
+
+                ],
+                "AXValue" : null,
+                "title" : null,
+                "type" : "Group",
+                "subrole" : null,
+                "children" : [
+
+                ],
+                "pid" : 26533,
+                "AXFrame" : "{{0, 0}, {414, 896}}",
+                "role_description" : "group",
+                "content_required" : false,
+                "frame" : {
+                  "width" : 414,
+                  "height" : 896,
+                  "x" : 0,
+                  "y" : 0
+                },
+                "help" : null,
+                "AXLabel" : null,
+                "role" : "AXGroup"
+              }
+            ],
+            "AXLabel" : null,
+            "AXFrame" : "{{0, 0}, {414, 896}}",
+            "AXUniqueId" : null,
+            "content_required" : false,
+            "role" : "AXGroup",
+            "traits" : [
+
+            ],
+            "AXValue" : null,
+            "custom_actions" : [
+
+            ],
+            "title" : null,
+            "pid" : 26533
+          }
+        ],
+        "role_description" : "group",
+        "AXLabel" : null,
+        "role" : "AXGroup",
+        "frame" : {
+          "width" : 414,
+          "height" : 896,
+          "x" : 0,
+          "y" : 0
+        },
+        "content_required" : false,
+        "pid" : 26533,
+        "AXFrame" : "{{0, 0}, {414, 896}}",
+        "AXUniqueId" : null,
+        "custom_actions" : [
+
+        ],
+        "help" : null,
+        "AXValue" : null,
+        "type" : "Group",
+        "title" : null,
+        "enabled" : true,
+        "subrole" : null
+      }
+    ],
+    "AXUniqueId" : null,
+    "type" : "Application",
+    "role_description" : "application",
+    "role" : "AXApplication",
+    "AXValue" : null,
+    "content_required" : false,
+    "custom_actions" : [
+
+    ]
+  }
+]
